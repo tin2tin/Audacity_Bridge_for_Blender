@@ -1,7 +1,7 @@
 # Audacity Tools For Blender
 Open Sound Strip, Sequence or Record in Audacity. 
 
-Only a prove of concept, so don't use for real work! 
+Only a proof of concept, so don't use for real work! 
 
 Contributors welcome.
 
