@@ -270,7 +270,7 @@ class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
             return {"CANCELLED"}
         filename = (
             chr(34)
-            + os.path.abspath(sequence.sequences_all[strip.name].sound.filepath)
+            + bpy.path.abspath(sequence.sequences_all[strip.name].sound.filepath)
             + chr(34)
         )
         bpy.types.Scene.send_strip = strip.name
@@ -362,7 +362,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
                     )
                     length = frames_to_sec(sequence.frame_final_duration)
                     filename = (
-                        chr(34) + os.path.abspath(sequence.sound.filepath) + chr(34)
+                        chr(34) + bpy.path.abspath(sequence.sound.filepath) + chr(34)
                     )
                     stream_start = frames_to_sec(sequence.frame_offset_start)
                     do_command(f"Import2: Filename={filename}")
