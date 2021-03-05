@@ -1,9 +1,9 @@
 # Audacity Tools For Blender
 Open Sound Strip, Sequence or Record in Audacity. 
 
-Only a proof of concept, so don't use for real work! 
+Only a proof of concept, so don't use it for real work! 
 
-Contributors welcome.
+Contributions welcome.
 
 Tutorial:
 Before running this add-on, Audacity must be running with Preferences > Modules > mod_script_pipe Enabled(after a restart of Audacity). 
