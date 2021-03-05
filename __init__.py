@@ -28,23 +28,24 @@ from bpy.types import Operator
 
 
 # Platform specific constants
-if sys.platform == 'win32':
-    PIPE_TO_AUDACITY = '\\\\.\\pipe\\ToSrvPipe'
-    PIPE_FROM_AUDACITY = '\\\\.\\pipe\\FromSrvPipe'
-    EOL = '\r\n\0'
+if sys.platform == "win32":
+    PIPE_TO_AUDACITY = "\\\\.\\pipe\\ToSrvPipe"
+    PIPE_FROM_AUDACITY = "\\\\.\\pipe\\FromSrvPipe"
+    EOL = "\r\n\0"
 else:
-    PIPE_TO_AUDACITY = '/tmp/audacity_script_pipe.to.' + str(os.getuid())
-    PIPE_FROM_AUDACITY = '/tmp/audacity_script_pipe.from.' + str(os.getuid())
-    EOL = '\n'
-
+    PIPE_TO_AUDACITY = "/tmp/audacity_script_pipe.to." + str(os.getuid())
+    PIPE_FROM_AUDACITY = "/tmp/audacity_script_pipe.from." + str(os.getuid())
+    EOL = "\n"
 try:
     sleep(0.01)
-    TOPIPE = open(PIPE_TO_AUDACITY, 'w')
+    TOPIPE = open(PIPE_TO_AUDACITY, "w")
     print("-- File to write to has been opened")
-    FROMPIPE = open(PIPE_FROM_AUDACITY, 'r')
+    FROMPIPE = open(PIPE_FROM_AUDACITY, "r")
     print("-- File to read from has now been opened too\r\n")
 except:
-    print("Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender.")
+    print(
+        "Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender."
+    )
 
 
 def send_command(command):
@@ -69,7 +70,7 @@ def get_response():
 def do_command(command):
     """Do the command. Return the response."""
     send_command(command)
-    sleep(0.1) # may be required on slow machines
+    sleep(0.1)  # may be required on slow machines
     response = get_response()
     print("Rcvd: <<< " + response)
     return response
@@ -151,17 +152,92 @@ class SEQUENCER_PT_audacity_tools(Panel):
         layout = self.layout
         col = layout.column(align=(False))
 
-        col.operator("sequencer.send_to_audacity",icon="EXPORT")
+        col.operator("sequencer.send_to_audacity", icon="EXPORT")
 
         if not screen.is_animation_playing:
-            col.operator("sequencer.record_in_audacity", text="Record",icon="RADIOBUT_ON")
+            col.operator(
+                "sequencer.record_in_audacity", text="Record", icon="RADIOBUT_ON"
+            )
         elif bpy.types.Scene.record_start != -1:
-            col.operator("sequencer.stop_in_audacity", text="Stop",icon="SNAP_FACE")
-
-        col.operator("sequencer.receive_from_audacity", text="Receive",icon="IMPORT")
+            col.operator("sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE")
+        col.operator("sequencer.receive_from_audacity", text="Receive", icon="IMPORT")
 
         col.separator()
-        col.operator("sequencer.send_project_to_audacity", text="Send Sequence", icon="SEQ_SEQUENCER")
+        col.operator(
+            "sequencer.send_project_to_audacity",
+            text="Send Sequence",
+            icon="SEQ_SEQUENCER",
+        )
+
+
+def set_volume(strip, active):
+    scene = bpy.context.scene
+    sequence = scene.sequence_editor
+    volume = strip.volume
+
+    if scene.animation_data is not None:
+        if scene.animation_data.action is not None:
+            all_curves = scene.animation_data.action.fcurves
+
+            # attempts to find the keyframes by iterating through all curves in scene
+            fade_curve = False  # curve for the fades
+            for curve in all_curves:
+                if (
+                    curve.data_path
+                    == 'sequence_editor.sequences_all["' + strip.name + '"].volume'
+                ):
+                    print("#keyframes found")
+                    fade_curve = curve
+                    if fade_curve:
+                        fade_keyframes = fade_curve.keyframe_points
+
+                        for f in fade_keyframes:
+                            # f.co[0]is the frame number
+                            # f.co[1] # is the keyed value
+                            if f.co[1] == 0:
+                                volume = 0.015
+                            else:
+                                volume = f.co[1]
+                            sound_start = sequence.sequences_all[
+                                strip.name
+                            ].frame_final_start
+                            sound_end = (
+                                sequence.sequences_all[strip.name].frame_final_start
+                                + sequence.sequences_all[
+                                    strip.name
+                                ].frame_final_duration
+                            )
+                            offset_start = sequence.sequences_all[
+                                strip.name
+                            ].frame_offset_start
+                            # Fade out will not work on last frame. Audacity cuts it.
+                            if f.co[0] >= sound_end:
+                                frame = sound_end - 2
+                            elif f.co[0] <= sound_start:
+                                frame = sound_start + 2
+                            else:
+                                frame = f.co[0]
+                            if active:
+                                do_command(
+                                    "SetEnvelope: Time="
+                                    + str(frames_to_sec(frame - sound_start))
+                                    + " Value="
+                                    + str(volume)
+                                )
+                            else:
+                                do_command(
+                                    "SetEnvelope: Time="
+                                    + str(frames_to_sec(frame))
+                                    + " Value="
+                                    + str(volume)
+                                )
+    else:
+        do_command(
+            "SetEnvelope: Time="
+            + str(frames_to_sec(sequence.sequences_all[strip.name].frame_offset_start))
+            + " Value="
+            + str(volume)
+        )
 
 
 class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
@@ -228,6 +304,7 @@ class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
         do_command("ZoomSel:")
         do_command("FitInWindow:")
         do_command("FitV:")
+        set_volume(strip, True)
 
         return {"FINISHED"}
 
@@ -258,10 +335,6 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         fps = round((render.fps / render.fps_base), 3)
         bpy.types.Scene.record_start = -1
 
-        if strip == None:
-            return {"CANCELLED"}
-        if strip.type != "SOUND":
-            return {"CANCELLED"}
         do_command("SelectAll")
         do_command("RemoveTracks")
 
@@ -316,9 +389,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
                         ).replace("'", '"')
                     )
                     do_command("Paste:")
-                    do_command("ZoomSel:")
-                    do_command("FitInWindow:")
-                    do_command("FitV:")
+                    set_volume(sequence, False)
         do_command("ZoomSel:")
         do_command("FitInWindow:")
         do_command("FitV:")
@@ -348,7 +419,7 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
         scene = bpy.context.scene
         sequence = scene.sequence_editor
         bpy.types.Scene.record_start = scene.frame_current
-        bpy.context.scene.use_audio = True 
+        bpy.context.scene.use_audio = True
 
         do_command("SelectAll")
         do_command("RemoveTracks")
@@ -383,7 +454,6 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
         bpy.context.scene.use_audio = False
         do_command("PlayStop:")
         bpy.ops.screen.animation_play()
-
 
         return {"FINISHED"}
 
@@ -463,7 +533,7 @@ def register():
     for i in classes:
         register_class(i)
     bpy.types.Scene.send_strip = bpy.props.StringProperty("")
-    bpy.types.Scene.record_start = bpy.props.IntProperty(default = -1)
+    bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
 
 
 def unregister():
@@ -472,6 +542,6 @@ def unregister():
         unregister_class(i)
     del bpy.types.Scene.send_strip
 
+
 if __name__ == "__main__":
     register()
-
