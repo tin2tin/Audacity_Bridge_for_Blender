@@ -147,6 +147,13 @@ class SEQUENCER_PT_audacity_tools(Panel):
     bl_label = "Audacity Tools"
     bl_category = "Audacity Tools"
 
+    @classmethod
+    def poll(cls, context):
+        return (
+            context.space_data.view_type == "SEQUENCER"
+            or context.space_data.view_type == "SEQUENCER_PREVIEW"
+        )
+
     def draw(self, context):
         scene = context.scene
         screen = context.screen
@@ -154,32 +161,42 @@ class SEQUENCER_PT_audacity_tools(Panel):
         col = layout.column(align=(False))
         col.prop(scene, "audacity_mode", text="")
 
-        if scene.audacity_mode == 'STRIP':
+        if scene.audacity_mode == "STRIP":
             col.operator("sequencer.send_to_audacity", icon="EXPORT")
-            col.operator("sequencer.receive_from_audacity", text="Receive", icon="IMPORT")
-            
-        if scene.audacity_mode == 'SEQUENCE':        
+            col.operator(
+                "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
+            )
+        if scene.audacity_mode == "SEQUENCE":
             col.separator()
             col.operator(
                 "sequencer.send_project_to_audacity",
                 text="Send Sequence",
-                icon="SEQ_SEQUENCER",
-                )
-            # col.operator("sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT")
-        if scene.audacity_mode == 'RECORD':
+                icon="EXPORT",
+            )
+            col.operator(
+                "sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT"
+            )
+        if scene.audacity_mode == "RECORD":
             if not screen.is_animation_playing:
                 col.operator(
                     "sequencer.record_in_audacity", text="Record", icon="RADIOBUT_ON"
                 )
             elif bpy.types.Scene.record_start != -1:
-                col.operator("sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE")
-            col.operator("sequencer.receive_from_audacity", text="Receive", icon="IMPORT")
+                col.operator(
+                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                )
+            col.operator(
+                "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
+            )
 
 
+# Get f-curves and set then as envelopes.
 def set_volume(strip, active):
     scene = bpy.context.scene
+    mode = scene.audacity_mode
     sequence = scene.sequence_editor
     volume = strip.volume
+    name = sequence.sequences_all[strip.name]
 
     if scene.animation_data is not None:
         if scene.animation_data.action is not None:
@@ -187,12 +204,12 @@ def set_volume(strip, active):
 
             # attempts to find the keyframes by iterating through all curves in scene
             fade_curve = False  # curve for the fades
+
             for curve in all_curves:
                 if (
                     curve.data_path
                     == 'sequence_editor.sequences_all["' + strip.name + '"].volume'
                 ):
-                    print("#keyframes found")
                     fade_curve = curve
                     if fade_curve:
                         fade_keyframes = fade_curve.keyframe_points
@@ -208,7 +225,7 @@ def set_volume(strip, active):
                                 strip.name
                             ].frame_final_start
                             sound_end = (
-                                sequence.sequences_all[strip.name].frame_final_start
+                                name.frame_final_start
                                 + sequence.sequences_all[
                                     strip.name
                                 ].frame_final_duration
@@ -237,13 +254,21 @@ def set_volume(strip, active):
                                     + " Value="
                                     + str(volume)
                                 )
-    else:
-        do_command(
-            "SetEnvelope: Time="
-            + str(frames_to_sec(sequence.sequences_all[strip.name].frame_offset_start))
-            + " Value="
-            + str(volume)
-        )
+    if not fade_curve:
+        if mode == "STRIP":
+            do_command(
+                "SetEnvelope: Time="
+                + str(frames_to_sec(name.frame_offset_start + 2))
+                + " Value="
+                + str(volume)
+            )
+        if mode == "SEQUENCE":
+            do_command(
+                "SetEnvelope: Time="
+                + str(frames_to_sec(name.frame_final_start + 2))
+                + " Value="
+                + str(volume)
+            )
 
 
 class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
@@ -255,48 +280,35 @@ class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
-    @classmethod
-    def poll(self, context):
-        if context.scene:
-            return True
-        else:
-            return False
-
     def execute(self, context):
-
         if not bpy.context.scene.sequence_editor:
             bpy.context.scene.sequence_editor_create()
         strip = act_strip(context)
         scene = bpy.context.scene
         sequence = scene.sequence_editor
+        name = sequence.sequences_all[strip.name]
         bpy.types.Scene.record_start = -1
 
         if strip == None:
             return {"CANCELLED"}
         if strip.type != "SOUND":
             return {"CANCELLED"}
-        filename = (
-            chr(34)
-            + bpy.path.abspath(sequence.sequences_all[strip.name].sound.filepath)
-            + chr(34)
-        )
+        filename = chr(34) + bpy.path.abspath(name.sound.filepath) + chr(34)
+
         bpy.types.Scene.send_strip = strip.name
         print("Sending " + bpy.types.Scene.send_strip)
         render = bpy.context.scene.render
         fps = round((render.fps / render.fps_base), 3)
-        sound_in = sequence.sequences_all[strip.name].frame_offset_start / fps
-        sound_out = str(
-            sound_in + sequence.sequences_all[strip.name].frame_final_duration / fps
-        )
-        sound_offset_in = str(
-            frames_to_sec(sequence.sequences_all[strip.name].frame_offset_start)
-        )
+
+        sound_in = frames_to_sec(name.frame_offset_start)
+        sound_out = str(frames_to_sec(name.frame_duration - name.frame_offset_end))
         sound_in = str(sound_in)
 
+        # Import.
         do_command("SelectAll")
         do_command("RemoveTracks")
         do_command(f"Import2: Filename={filename}")
-
+        # Label.
         do_command(
             (
                 "SelectTime:End='"
@@ -308,12 +320,13 @@ class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
         )
         do_command("AddLabel:")
         do_command(("SetLabel:Label='0' Text='Used in Blender'").replace("'", '"'))
+        # View.
         do_command("ZoomSel:")
         do_command("FitInWindow:")
         do_command("FitV:")
         set_volume(strip, True)
 
-        return {"FINISHED"}        
+        return {"FINISHED"}
 
 
 class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
@@ -324,13 +337,6 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
     bl_description = "Send Sequence to Audacity"
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(self, context):
-        if context.scene:
-            return True
-        else:
-            return False
 
     def execute(self, context):
         if not bpy.context.scene.sequence_editor:
@@ -349,54 +355,51 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         tracks = get_tracks(sequences)
         index = 0
         track_index = -1
+
         for track in reversed(tracks):
             track_index = track_index + 1
             do_command("NewStereoTrack:")
+
             for sequence_data in track:
                 index = index + 1
                 source, sequence = sequence_data
+
                 if sequence.type == "SOUND":
                     sound_in = frames_to_sec(sequence.frame_final_start)
-                    sound_out = str(
-                        sound_in + frames_to_sec(sequence.frame_final_duration)
-                    )
-                    sound_in = str(sound_in)
-                    sound_offset_in = str(frames_to_sec(sequence.frame_offset_start))
-                    sound_offset_out = str(
-                        frames_to_sec(
-                            sequence.frame_offset_start + sequence.frame_final_duration
-                        )
-                    )
-                    length = frames_to_sec(sequence.frame_final_duration)
+                    sound_out = sound_in + frames_to_sec(sequence.frame_final_duration)
+                    sound_offset_in = frames_to_sec(sequence.frame_offset_start)
+                    sound_offset_out = frames_to_sec(sequence.frame_offset_end)
+                    length = frames_to_sec(sequence.frame_duration)
                     filename = (
                         chr(34) + bpy.path.abspath(sequence.sound.filepath) + chr(34)
                     )
                     stream_start = frames_to_sec(sequence.frame_offset_start)
                     do_command(f"Import2: Filename={filename}")
+                    # Remove unused material.
                     do_command(
                         (
                             "SelectTime:End='"
-                            + sound_out
+                            + str(length - sound_offset_out)
                             + "' RelativeTo='ProjectStart' Start='"
-                            + sound_in
+                            + str(sound_offset_in)
                             + "'"
                         ).replace("'", '"')
                     )
                     do_command("Trim:")
+                    # Cut & paste into correct track and remove the old.
                     do_command("Cut:")
                     do_command("RemoveTracks:")
                     do_command("SelectTracks:Track=" + str(track_index))
-
-                    do_command("Paste:")
                     do_command(
                         (
                             "SelectTime:End='"
-                            + sound_out
+                            + str(sound_out)
                             + "' RelativeTo='ProjectStart' Start='"
-                            + sound_in
+                            + str(sound_in)
                             + "'"
                         ).replace("'", '"')
                     )
+                    do_command("Paste:")
                     set_volume(sequence, False)
         do_command("ZoomSel:")
         do_command("FitInWindow:")
@@ -413,13 +416,6 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
     bl_description = "Record in Audacity"
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(self, context):
-        if context.scene:
-            return True
-        else:
-            return True
 
     def execute(self, context):
         if not bpy.context.scene.sequence_editor:
@@ -446,13 +442,6 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
     bl_description = "Stop in Audacity"
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(self, context):
-        if context.scene:
-            return True
-        else:
-            return True
 
     def execute(self, context):
         if not bpy.context.scene.sequence_editor:
@@ -483,16 +472,21 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
         filepath = self.filepath
         scene = context.scene
         mode = scene.audacity_mode
-        do_command("SelAllTracks")
-        do_command("SelTrackStartToEnd")
+
         if mode == "SEQUENCE":
+            do_command("NewStereoTrack")
+            do_command(
+                ("SelectTime:End='1' RelativeTo='ProjectStart' Start='0'").replace(
+                    "'", '"'
+                )
+            )
+            do_command("Silence:Duration='1'").replace("'", '"')
             do_command("MixAndRender")
         do_command("SelAllTracks")
         do_command("SelTrackStartToEnd")
         do_command(f"Export2: Filename={filepath} NumChannels=2")
         if mode == "SEQUENCE":
-            #do_command("Undo")
-            #do_command("Undo")
+            do_command("Undo")
             do_command("Undo")
         time.sleep(0.1)
         scene = bpy.context.scene
@@ -500,7 +494,8 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
         seq_ops = bpy.ops.sequencer
         strip_name = scene.send_strip
 
-        if bpy.types.Scene.record_start != -1 and mode != "SEQUENCE": # Record
+        if bpy.types.Scene.record_start != -1 and mode  != "RECORD":
+            print("Her: "+str(bpy.types.Scene.record_start))
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,
@@ -508,7 +503,7 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
                 channel=find_completely_empty_channel(),
             )
             bpy.types.Scene.record_start = -1
-        elif strip_name != "" and mode != "SEQUENCE": # Strip
+        elif strip_name != "" and mode == "STRIP":
             sound_start = sequence.sequences_all[strip_name].frame_start
             sound_in = sequence.sequences_all[strip_name].frame_final_start
             sound_duration = sequence.sequences_all[strip_name].frame_final_duration
@@ -525,17 +520,18 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
             sequence.sequences_all[new_sound.name].frame_final_start = sound_in
             sequence.sequences_all[new_sound.name].frame_offset_start = sound_offset_in
             sequence.sequences_all[new_sound.name].frame_final_duration = sound_duration
-            bpy.context.scene.sequence_editor.active_strip = sequence.sequences_all[new_sound.name]
+            bpy.context.scene.sequence_editor.active_strip = sequence.sequences_all[
+                new_sound.name
+            ]
             sequence.sequences_all[strip_name].mute = True
-        elif mode != "SEQUENCE": # No Strip name
+        elif mode != "SEQUENCE":  # No Strip name, insert at current frame
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,
                 frame_start=scene.frame_current,
                 channel=find_completely_empty_channel(),
             )
-        else: # Sequence
-            print("Sequence")
+        else:  # Sequence
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,
@@ -543,78 +539,6 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
                 channel=find_completely_empty_channel(),
             )
         return {"FINISHED"}
-
-
-class SEQUENCER_OT_receive_mixdown_from_audacity(Operator, ExportHelper):
-
-    bl_idname = "sequencer.receive_mixdown_from_audacity"
-    bl_label = "Receive Mixdown"
-
-    filename_ext = ".wav"
-
-    Mixdown: bpy.props.BoolProperty(
-        name='mixdown',
-        description="Recieve Mixdown",
-        default=True 
-    )
-    filter_glob: StringProperty(
-        default="*.wav",
-        options={"HIDDEN"},
-        maxlen=255,
-    )
-
-    def execute(self, context):
-        filepath = self.filepath
-        do_command("MixAndRender")
-        do_command("SelAllTracks")
-        do_command("SelTrackStartToEnd")
-        do_command(f"Export2: Filename={filepath} NumChannels=2")
-        do_command("Undo")
-        do_command("Undo")
-        do_command("Undo")
-        do_command("Undo")
-        time.sleep(0.1)
-        scene = bpy.context.scene
-        sequence = scene.sequence_editor
-        seq_ops = bpy.ops.sequencer
-        strip_name = scene.send_strip
-
-        if bpy.types.Scene.record_start != -1:
-            seq_ops.sound_strip_add(
-                filepath=filepath,
-                relative_path=False,
-                frame_start=bpy.types.Scene.record_start,
-                channel=find_completely_empty_channel(),
-            )
-            bpy.types.Scene.record_start = -1
-        elif strip_name != "":
-            sound_start = sequence.sequences_all[strip_name].frame_start
-            sound_in = sequence.sequences_all[strip_name].frame_final_start
-            sound_duration = sequence.sequences_all[strip_name].frame_final_duration
-            sound_offset_in = sequence.sequences_all[strip_name].frame_offset_start
-            sound_channel = sequence.sequences_all[strip_name].channel
-
-            new_sound = sequence.sequences.new_sound(
-                name=strip_name,
-                filepath=filepath,
-                frame_start=sound_start,
-                channel=sound_channel + 1,
-            )
-            sequence.sequences_all[new_sound.name].frame_start = sound_start
-            sequence.sequences_all[new_sound.name].frame_final_start = sound_in
-            sequence.sequences_all[new_sound.name].frame_offset_start = sound_offset_in
-            sequence.sequences_all[new_sound.name].frame_final_duration = sound_duration
-            bpy.context.scene.sequence_editor.active_strip = sequence.sequences_all[new_sound.name]
-            sequence.sequences_all[strip_name].mute = True
-        else:
-            seq_ops.sound_strip_add(
-                filepath=filepath,
-                relative_path=False,
-                frame_start=scene.frame_current,
-                channel=find_completely_empty_channel(),
-            )
-        return {"FINISHED"}
-
 
 
 classes = (
@@ -634,12 +558,15 @@ def register():
     bpy.types.Scene.send_strip = bpy.props.StringProperty("")
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
-        name="Mode", description="",
+        name="Mode",
+        description="",
         items=(
-            ('STRIP', 'Strip', ''),
-            ('SEQUENCE', 'Sequence', ''),   
-            ('RECORD', 'Record', ''),   
-            ))
+            ("STRIP", "Strip", ""),
+            ("SEQUENCE", "Sequence", ""),
+            ("RECORD", "Record", ""),
+        ),
+    )
+
 
 def unregister():
 
