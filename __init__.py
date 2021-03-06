@@ -509,6 +509,7 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
             sequence.sequences_all[new_sound.name].frame_final_start = sound_in
             sequence.sequences_all[new_sound.name].frame_offset_start = sound_offset_in
             sequence.sequences_all[new_sound.name].frame_final_duration = sound_duration
+            bpy.context.scene.sequence_editor.active_strip = sequence.sequences_all[new_sound.name]
             sequence.sequences_all[strip_name].mute = True
         else:
             seq_ops.sound_strip_add(
