@@ -473,9 +473,11 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
 
     def execute(self, context):
         filepath = self.filepath
-        do_command("Select: Track=0 mode=Set")
+#        do_command("Select: First=0 Last=1 mode=Set")
+#        do_command("SelSyncLockTracks")
+        do_command("SelAllTracks")
         do_command("SelTrackStartToEnd")
-        do_command(f"Export2: Filename={filepath} NumChannels=1.0")
+        do_command(f"Export2: Filename={filepath} NumChannels=2")
         time.sleep(0.1)
         scene = bpy.context.scene
         sequence = scene.sequence_editor
