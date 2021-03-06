@@ -26,7 +26,6 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
 
-
 # Platform specific constants
 if sys.platform == "win32":
     PIPE_TO_AUDACITY = "\\\\.\\pipe\\ToSrvPipe"
@@ -177,6 +176,7 @@ class SEQUENCER_PT_audacity_tools(Panel):
                 "sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT"
             )
         if scene.audacity_mode == "RECORD":
+            sub = col.column() 
             if not screen.is_animation_playing:
                 col.operator(
                     "sequencer.record_in_audacity", text="Record", icon="RADIOBUT_ON"
@@ -185,7 +185,9 @@ class SEQUENCER_PT_audacity_tools(Panel):
                 col.operator(
                     "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
-            col.operator(
+            sub = col.column()
+            sub.active = not bpy.types.Scene.record_start == -1
+            sub.operator(
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
 
@@ -494,8 +496,7 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
         seq_ops = bpy.ops.sequencer
         strip_name = scene.send_strip
 
-        if bpy.types.Scene.record_start != -1 and mode  != "RECORD":
-            print("Her: "+str(bpy.types.Scene.record_start))
+        if bpy.types.Scene.record_start != -1 and mode  == "RECORD":
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,
@@ -557,6 +558,7 @@ def register():
         register_class(i)
     bpy.types.Scene.send_strip = bpy.props.StringProperty("")
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
+    bpy.types.Scene.record_start = -1
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
         name="Mode",
         description="",
