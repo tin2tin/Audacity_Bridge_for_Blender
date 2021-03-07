@@ -165,6 +165,15 @@ class SEQUENCER_PT_audacity_tools(Panel):
             col.operator(
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
+            col.separator()
+            if not screen.is_animation_playing:
+                col.operator(
+                    "sequencer.stop_in_audacity", text="Play", icon="PLAY"
+                )
+            else:
+                col.operator(
+                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                )
         if scene.audacity_mode == "SEQUENCE":
             col.separator()
             col.operator(
@@ -175,6 +184,15 @@ class SEQUENCER_PT_audacity_tools(Panel):
             col.operator(
                 "sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT"
             )
+            col.separator()
+            if not screen.is_animation_playing:
+                col.operator(
+                    "sequencer.stop_in_audacity", text="Play", icon="PLAY"
+                )
+            else:
+                col.operator(
+                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                )
         if scene.audacity_mode == "RECORD":
             sub = col.column() 
             if not screen.is_animation_playing:
@@ -447,13 +465,40 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
 
     def execute(self, context):
         if not bpy.context.scene.sequence_editor:
-            bpy.context.scene.sequence_editor_create()
-        scene = bpy.context.scene
+            context.scene.sequence_editor_create()
+        scene = context.scene
         sequence = scene.sequence_editor
-        bpy.context.scene.use_audio = False
-        do_command("PlayStop:")
-        bpy.ops.screen.animation_play()
+        screen = context.screen
 
+        if not screen.is_animation_playing:
+            if scene.audacity_mode == "RECORD":
+                bpy.context.scene.use_audio = True
+                do_command("PlayStop:")
+                bpy.ops.screen.animation_play()
+            if scene.audacity_mode == "SEQUENCE":
+                bpy.context.scene.use_audio = True
+                sound_in = frames_to_sec(scene.frame_current)
+                sound_out = frames_to_sec(scene.frame_end)
+                sound_in = str(sound_in)
+                do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
+                do_command("PlayStop:")
+                bpy.ops.screen.animation_play()
+            if scene.audacity_mode == "STRIP":
+                strip_name = scene.send_strip
+                if strip_name != "":
+                    bpy.ops.sequencer.set_range_to_strips(preview=True)
+                    sound_in = frames_to_sec(sequence.sequences_all[strip_name].frame_offset_start)
+                    sound_out = frames_to_sec(sequence.sequences_all[strip_name].frame_duration - sequence.sequences_all[strip_name].frame_offset_end)
+                    sound_duration = sequence.sequences_all[strip_name].frame_final_duration
+                    bpy.context.scene.use_audio = True
+                    do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
+                    do_command("PlayStop:")
+                    bpy.ops.screen.animation_play()
+        else:
+            do_command("PlayStop:")
+            bpy.ops.screen.animation_play()
+            bpy.ops.anim.previewrange_clear()
+            bpy.context.scene.use_audio = False
         return {"FINISHED"}
 
 
@@ -491,7 +536,7 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
             do_command("Undo")
             do_command("Undo")
         time.sleep(0.1)
-        scene = bpy.context.scene
+        scene = context.scene
         sequence = scene.sequence_editor
         seq_ops = bpy.ops.sequencer
         strip_name = scene.send_strip
