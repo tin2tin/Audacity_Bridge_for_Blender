@@ -515,6 +515,24 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
         return {"FINISHED"}
 
 
+# get unique name
+def get_unique_name_from_dir(directory, base_name):
+
+    #check for dupes
+    old_names = []
+    for name in os.listdir(directory):
+        if base_name in name:
+            old_names.append(name)
+    
+    count = 0
+    new_name = base_name
+    while new_name in old_names:
+        new_name = base_name + "_" + str(count).zfill(3)
+        count += 1
+
+    return new_name
+
+
 class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
 
     bl_idname = "sequencer.receive_from_audacity"
@@ -529,8 +547,16 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
     )
 
     def __init__(self):
+        # if file saved, get proper unique name
         if bpy.data.filepath:
-            self.filepath = os.path.join(os.path.dirname(bpy.data.filepath), "clip_from_audacity.wav")
+            directory = os.path.dirname(bpy.data.filepath)
+            blend_name = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
+            base_name = "%s_from_audacity.wav" % blend_name
+            base_path = os.path.join(directory, base_name)
+            if os.path.isfile(base_path):
+                self.filepath = get_unique_name_from_dir(directory, base_name)
+            else:
+                self.filepath = base_path
 
     def execute(self, context):
         filepath = self.filepath
