@@ -228,6 +228,7 @@ def set_volume(strip, active):
     sequence = scene.sequence_editor
     volume = strip.volume
     name = sequence.sequences_all[strip.name]
+    fade_curve = None  # curve for the fades
 
     if scene.animation_data is not None:
         if scene.animation_data.action is not None:
@@ -286,21 +287,21 @@ def set_volume(strip, active):
                                     + str(volume)
                                 )
 
-            if not fade_curve:
-                if mode == "STRIP":
-                    do_command(
-                        "SetEnvelope: Time="
-                        + str(frames_to_sec(name.frame_offset_start + 2))
-                        + " Value="
-                        + str(volume)
-                    )
-                if mode == "SEQUENCE":
-                    do_command(
-                        "SetEnvelope: Time="
-                        + str(frames_to_sec(name.frame_final_start + 2))
-                        + " Value="
-                        + str(volume)
-                    )
+    if fade_curve is None and volume != 1:
+        if mode == "STRIP":
+            do_command(
+                "SetEnvelope: Time="
+                + str(frames_to_sec(name.frame_offset_start + 2))
+                + " Value="
+                + str(volume)
+            )
+        if mode == "SEQUENCE":
+            do_command(
+                "SetEnvelope: Time="
+                + str(frames_to_sec(name.frame_final_start + 2))
+                + " Value="
+                + str(volume)
+            )
 
 
 class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
