@@ -15,10 +15,6 @@ Installation:
 - Open the Sequencer sidebar and select Audacity Tools.
 (NB. Blender will only run this add-on once, and needs a restart for rerun).
 
-Installation tutorial(gif):
-![alt text](https://github.com/tin2tin/audacity_tools_for_blender/blob/main/audacity2.gif)
-
 Tutorial on Youtube:
-
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/f61Zvb8AipA/0.jpg)](https://www.youtube.com/watch?v=f61Zvb8AipA)
