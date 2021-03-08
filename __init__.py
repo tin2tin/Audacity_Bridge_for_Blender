@@ -157,8 +157,9 @@ class SEQUENCER_PT_audacity_tools(Panel):
         scene = context.scene
         screen = context.screen
         layout = self.layout
+
+        layout.prop(scene, "audacity_mode", text="")
         col = layout.column(align=(False))
-        col.prop(scene, "audacity_mode", text="")
 
         if scene.audacity_mode == "STRIP":
             col.operator("sequencer.send_to_audacity", icon="EXPORT")
@@ -166,14 +167,19 @@ class SEQUENCER_PT_audacity_tools(Panel):
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
             col.separator()
+            row = col.row(align=True)
             if not screen.is_animation_playing:
-                col.operator(
+                row.operator(
                     "sequencer.stop_in_audacity", text="Play", icon="PLAY"
                 )
             else:
-                col.operator(
+                row.operator(
                     "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
+            if scene.use_audio:
+                row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
+            else:
+                row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False) 
         if scene.audacity_mode == "SEQUENCE":
             col.separator()
             col.operator(
@@ -185,14 +191,19 @@ class SEQUENCER_PT_audacity_tools(Panel):
                 "sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT"
             )
             col.separator()
+            row = col.row(align=True)
             if not screen.is_animation_playing:
-                col.operator(
+                row.operator(
                     "sequencer.stop_in_audacity", text="Play", icon="PLAY"
                 )
             else:
-                col.operator(
+                row.operator(
                     "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
+            if scene.use_audio:
+                row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
+            else:
+                row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False)                
         if scene.audacity_mode == "RECORD":
             sub = col.column() 
             if not screen.is_animation_playing:
@@ -490,6 +501,7 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
                     sound_in = frames_to_sec(sequence.sequences_all[strip_name].frame_offset_start)
                     sound_out = frames_to_sec(sequence.sequences_all[strip_name].frame_duration - sequence.sequences_all[strip_name].frame_offset_end)
                     sound_duration = sequence.sequences_all[strip_name].frame_final_duration
+                    scene.frame_current = sound_in
                     bpy.context.scene.use_audio = True
                     do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
                     do_command("PlayStop:")
