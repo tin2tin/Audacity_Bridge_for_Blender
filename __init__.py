@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Audacity Tools",
     "author": "Tintwotin, Steve(Audacity)",
-    "version": (0, 2),
+    "version": (0, 8),
     "blender": (2, 90, 0),
     "location": "Sequencer Sidebar",
     "description": "Open Sound Strip, Sequence or Record in Audacity",
@@ -228,13 +228,13 @@ def set_volume(strip, active):
     sequence = scene.sequence_editor
     volume = strip.volume
     name = sequence.sequences_all[strip.name]
+    fade_curve = False  # curve for the fades
 
     if scene.animation_data is not None:
         if scene.animation_data.action is not None:
             all_curves = scene.animation_data.action.fcurves
 
             # attempts to find the keyframes by iterating through all curves in scene
-            fade_curve = False  # curve for the fades
 
             for curve in all_curves:
                 if (
