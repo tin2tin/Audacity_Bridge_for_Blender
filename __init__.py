@@ -228,7 +228,7 @@ def set_volume(strip, active):
     sequence = scene.sequence_editor
     volume = strip.volume
     name = sequence.sequences_all[strip.name]
-    fade_curve = False  # curve for the fades
+    fade_curve = None  # curve for the fades
 
     if scene.animation_data is not None:
         if scene.animation_data.action is not None:
@@ -285,7 +285,8 @@ def set_volume(strip, active):
                                     + " Value="
                                     + str(volume)
                                 )
-    if not fade_curve:
+
+    if fade_curve is None and volume != 1:
         if mode == "STRIP":
             do_command(
                 "SetEnvelope: Time="
@@ -514,6 +515,24 @@ class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
         return {"FINISHED"}
 
 
+# get unique name
+def get_unique_name_from_dir(directory, base_name):
+
+    #check for dupes
+    old_names = []
+    for name in os.listdir(directory):
+        if base_name in name:
+            old_names.append(name)
+    
+    count = 0
+    new_name = base_name
+    while new_name in old_names:
+        new_name = base_name + "_" + str(count).zfill(3)
+        count += 1
+
+    return new_name
+
+
 class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
 
     bl_idname = "sequencer.receive_from_audacity"
@@ -526,6 +545,18 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
         options={"HIDDEN"},
         maxlen=255,
     )
+
+    def __init__(self):
+        # if file saved, get proper unique name
+        if bpy.data.filepath:
+            directory = os.path.dirname(bpy.data.filepath)
+            blend_name = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
+            base_name = "%s_from_audacity.wav" % blend_name
+            base_path = os.path.join(directory, base_name)
+            if os.path.isfile(base_path):
+                self.filepath = get_unique_name_from_dir(directory, base_name)
+            else:
+                self.filepath = base_path
 
     def execute(self, context):
         filepath = self.filepath
