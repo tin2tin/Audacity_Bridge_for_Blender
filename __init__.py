@@ -285,21 +285,22 @@ def set_volume(strip, active):
                                     + " Value="
                                     + str(volume)
                                 )
-    if not fade_curve:
-        if mode == "STRIP":
-            do_command(
-                "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_offset_start + 2))
-                + " Value="
-                + str(volume)
-            )
-        if mode == "SEQUENCE":
-            do_command(
-                "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_final_start + 2))
-                + " Value="
-                + str(volume)
-            )
+                                
+            if not fade_curve:
+                if mode == "STRIP":
+                    do_command(
+                        "SetEnvelope: Time="
+                        + str(frames_to_sec(name.frame_offset_start + 2))
+                        + " Value="
+                        + str(volume)
+                    )
+                if mode == "SEQUENCE":
+                    do_command(
+                        "SetEnvelope: Time="
+                        + str(frames_to_sec(name.frame_final_start + 2))
+                        + " Value="
+                        + str(volume)
+                    )
 
 
 class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
