@@ -170,11 +170,11 @@ class SEQUENCER_PT_audacity_tools(Panel):
             row = col.row(align=True)
             if not screen.is_animation_playing:
                 row.operator(
-                    "sequencer.stop_in_audacity", text="Play", icon="PLAY"
+                    "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
                 )
             else:
                 row.operator(
-                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                    "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
             if scene.use_audio:
                 row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
@@ -194,11 +194,11 @@ class SEQUENCER_PT_audacity_tools(Panel):
             row = col.row(align=True)
             if not screen.is_animation_playing:
                 row.operator(
-                    "sequencer.stop_in_audacity", text="Play", icon="PLAY"
+                    "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
                 )
             else:
                 row.operator(
-                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                    "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
             if scene.use_audio:
                 row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
@@ -212,7 +212,7 @@ class SEQUENCER_PT_audacity_tools(Panel):
                 )
             elif bpy.types.Scene.record_start != -1:
                 col.operator(
-                    "sequencer.stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                    "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
             sub = col.column()
             sub.active = not bpy.types.Scene.record_start == -1
@@ -466,12 +466,12 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class SEQUENCER_OT_stop_in_audacity(bpy.types.Operator):
-    """Stop Audacity"""
+class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
+    """Play/Stop Audacity"""
 
-    bl_idname = "sequencer.stop_in_audacity"
+    bl_idname = "sequencer.play_stop_in_audacity"
     bl_label = "Play/Stop"
-    bl_description = "Stop in Audacity"
+    bl_description = "Play/Stop in Audacity"
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -635,7 +635,7 @@ classes = (
     SEQUENCER_OT_send_project_to_audacity,
     SEQUENCER_OT_receive_from_audacity,
     SEQUENCER_PT_audacity_tools,
-    SEQUENCER_OT_stop_in_audacity,
+    SEQUENCER_OT_play_stop_in_audacity,
     SEQUENCER_OT_record_in_audacity,
 )
 
