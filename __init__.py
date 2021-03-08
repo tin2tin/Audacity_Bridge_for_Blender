@@ -285,7 +285,7 @@ def set_volume(strip, active):
                                     + " Value="
                                     + str(volume)
                                 )
-                                
+
             if not fade_curve:
                 if mode == "STRIP":
                     do_command(
@@ -527,6 +527,10 @@ class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
         options={"HIDDEN"},
         maxlen=255,
     )
+
+    def __init__(self):
+        if bpy.data.filepath:
+            self.filepath = os.path.join(os.path.dirname(bpy.data.filepath), "clip_from_audacity.wav")
 
     def execute(self, context):
         filepath = self.filepath
