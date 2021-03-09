@@ -473,7 +473,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     bl_label = "Play/Stop"
     bl_description = "Play/Stop in Audacity"
     bl_category = "Audacity Tools"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER"}
 
     @classmethod
     def poll(cls, context):
