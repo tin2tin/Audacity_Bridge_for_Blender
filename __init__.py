@@ -18,6 +18,8 @@ import bpy
 import blf
 from time import sleep
 
+from bpy.app.handlers import persistent
+
 from bpy.utils import register_class, unregister_class
 
 from bpy.types import Panel, Menu
@@ -138,6 +140,12 @@ def find_completely_empty_channel():
         empty_channel = channels[-1] + 1
         addSceneChannel = empty_channel
     return addSceneChannel
+
+
+@persistent
+def audacity_tools_startup_handler(scene):
+    for s in bpy.data.scenes:
+        s.audacity_send = False
 
 
 class SEQUENCER_PT_audacity_tools(Panel):
@@ -761,7 +769,7 @@ def register():
     for i in classes:
         register_class(i)
     bpy.types.Scene.send_strip = bpy.props.StringProperty("")
-    bpy.types.Scene.audacity_send = bpy.props.BoolProperty(default = False, options = {'SKIP_SAVE'})
+    bpy.types.Scene.audacity_send = bpy.props.BoolProperty(default = False)
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
     bpy.types.Scene.record_start = -1
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
@@ -774,6 +782,9 @@ def register():
         ),
     )
 
+    # startup handler
+    bpy.app.handlers.load_post.append(audacity_tools_startup_handler)
+
 
 def unregister():
 
@@ -783,6 +794,8 @@ def unregister():
     del bpy.types.Scene.audacity_send
     del bpy.types.Scene.audacity_mode
 
+    # startup handler
+    bpy.app.handlers.load_post.remove(audacity_tools_startup_handler)
 
 if __name__ == "__main__":
     register()
