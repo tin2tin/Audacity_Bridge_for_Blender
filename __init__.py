@@ -169,14 +169,7 @@ class SEQUENCER_PT_audacity_tools(Panel):
             )
             col.separator()
             row = col.row(align=True)
-            if not screen.is_animation_playing:
-                row.operator(
-                    "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
-                )
-            else:
-                row.operator(
-                    "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
-                )
+            row.operator("sequencer.play_stop_in_audacity", text="Play", icon="PLAY")
             if scene.use_audio:
                 row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
             else:
@@ -546,7 +539,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
-        if not context.area.type == 'VIEW_3D':
+        if not context.area.type == 'SEQUENCE_EDITOR':
             self.report({'WARNING'}, "Sequence Editor Space not found, cannot run operator")
             return {'CANCELLED'}
 
