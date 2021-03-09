@@ -652,7 +652,7 @@ def register():
 
     for i in classes:
         register_class(i)
-    bpy.types.Scene.send_strip = bpy.props.StringProperty(name="Audacity send strip")
+    bpy.types.Scene.send_strip = bpy.props.StringProperty("")
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
     bpy.types.Scene.record_start = -1
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
