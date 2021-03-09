@@ -487,14 +487,15 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
         screen = context.screen
 
         if not screen.is_animation_playing:
+            
+            # mute blender sound (weird inverted property)
+            context.scene.use_audio = True
 
             if scene.audacity_mode == "RECORD":
-                bpy.context.scene.use_audio = True
                 do_command("PlayLooped:")
                 bpy.ops.screen.animation_play()
 
             if scene.audacity_mode == "SEQUENCE":
-                bpy.context.scene.use_audio = True
                 sound_in = frames_to_sec(scene.frame_current)
                 sound_out = frames_to_sec(scene.frame_end)
                 sound_in = str(sound_in)
@@ -510,7 +511,6 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                     sound_out = frames_to_sec(sequence.sequences_all[strip_name].frame_duration - sequence.sequences_all[strip_name].frame_offset_end)
                     sound_duration = sequence.sequences_all[strip_name].frame_final_duration
                     scene.frame_current = sound_in
-                    bpy.context.scene.use_audio = True
                     do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
                     do_command("PlayLooped:")
                     bpy.ops.screen.animation_play()
@@ -519,7 +519,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
             do_command("PlayStop:")
             bpy.ops.screen.animation_cancel(restore_frame = False)
             bpy.ops.anim.previewrange_clear()
-            bpy.context.scene.use_audio = False
+            context.scene.use_audio = False
         return {"FINISHED"}
 
 
