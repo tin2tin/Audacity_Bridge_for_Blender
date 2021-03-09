@@ -15,6 +15,7 @@ import sys
 import time
 import json
 import bpy
+import blf
 from time import sleep
 
 from bpy.utils import register_class, unregister_class
@@ -465,62 +466,167 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
 
         return {"FINISHED"}
 
+# draw play modal operator helper
+def draw_play_helper_callback_px(self, context):
+    font_id = 0
+
+    blf.color(0, 1,1,1,1)
+    blf.size(font_id, 16, 72)
+
+    blf.position(font_id, 20, 20, 0)
+    blf.draw(font_id, "Audacity Playing   SPACE - Stop   ESC - Cancel ")
+
 
 class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     """Play/Stop Audacity"""
-
     bl_idname = "sequencer.play_stop_in_audacity"
     bl_label = "Play/Stop"
     bl_description = "Play/Stop in Audacity"
     bl_category = "Audacity Tools"
-    bl_options = {"REGISTER"}
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    passthrough_event = [
+        "MOUSEMOVE",
+        "INBETWEEN_MOUSEMOVE",
+        "TRACKPADPAN",
+        "TRACKPADZOOM",
+        "MOUSEROTATE" ,
+        "MOUSESMARTZOOM",
+        "WHEELUPMOUSE",
+        "WHEELDOWNMOUSE",
+        "WHEELINMOUSE",
+        "WHEELOUTMOUSE",
+
+        "MIDDLEMOUSE", 
+        "LEFTMOUSE",
+        "RIGHTMOUSE",
+        "BUTTON4MOUSE",
+        "BUTTON5MOUSE",
+        "BUTTON6MOUSE",
+        "BUTTON7MOUSE",
+        "PEN",
+        "ERASER",
+    ]
 
     @classmethod
     def poll(cls, context):
-        if context.scene.sequence_editor:
-            return True           
-
-    def execute(self, context):
-        
         scene = context.scene
-        sequence = scene.sequence_editor
-        screen = context.screen
+        if scene.sequence_editor:
+            if not context.screen.is_animation_playing:
+                if scene.audacity_mode == "STRIP" and scene.send_strip == "":
+                    return False
+                return True           
 
-        if not screen.is_animation_playing:
-            
-            # mute blender sound (weird inverted property)
-            context.scene.use_audio = True
+    def modal(self, context, event):
 
-            if scene.audacity_mode == "RECORD":
-                do_command("PlayLooped:")
-                bpy.ops.screen.animation_play()
+        if event.type == 'SPACE':
+            self.finish(context)
+            return {'FINISHED'}
 
-            if scene.audacity_mode == "SEQUENCE":
-                sound_in = frames_to_sec(scene.frame_current)
+        elif event.type == 'ESC':
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        elif not context.screen.is_animation_playing:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        elif event.type in self.passthrough_event:
+            return {'PASS_THROUGH'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        if not context.area.type == 'VIEW_3D':
+            self.report({'WARNING'}, "Sequence Editor Space not found, cannot run operator")
+            return {'CANCELLED'}
+
+        scene = context.scene
+
+        # get old values 
+        self._old_use_audio = scene.use_audio
+        self._old_frame_current = scene.frame_current
+
+        # mute blender sound (weird inverted property)
+        scene.use_audio = True
+        
+        # set up and play 
+        if scene.audacity_mode == "RECORD":
+            do_command("PlayLooped:")
+            bpy.ops.screen.animation_play()
+
+        elif scene.audacity_mode == "SEQUENCE":
+            if scene.use_preview_range:
+                sound_in = frames_to_sec(scene.frame_preview_start)
+                sound_out = frames_to_sec(scene.frame_preview_end)
+            else:
+                sound_in = frames_to_sec(scene.frame_start)
                 sound_out = frames_to_sec(scene.frame_end)
-                sound_in = str(sound_in)
-                do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                do_command("PlayLooped:")
-                bpy.ops.screen.animation_play()
 
-            if scene.audacity_mode == "STRIP":
-                strip_name = scene.send_strip
-                if strip_name != "":
-                    bpy.ops.sequencer.set_range_to_strips(preview=True)
-                    sound_in = frames_to_sec(sequence.sequences_all[strip_name].frame_offset_start)
-                    sound_out = frames_to_sec(sequence.sequences_all[strip_name].frame_duration - sequence.sequences_all[strip_name].frame_offset_end)
-                    sound_duration = sequence.sequences_all[strip_name].frame_final_duration
-                    scene.frame_current = sound_in
-                    do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                    do_command("PlayLooped:")
-                    bpy.ops.screen.animation_play()
-                    
-        else:
-            do_command("PlayStop:")
-            bpy.ops.screen.animation_cancel(restore_frame = False)
-            bpy.ops.anim.previewrange_clear()
-            context.scene.use_audio = False
-        return {"FINISHED"}
+            do_command('SelectTime:End="%f" RelativeTo="ProjectStart" Start="%f"' % (sound_out, sound_in))
+            scene.frame_current = sound_in
+            do_command("PlayLooped:")
+            bpy.ops.screen.animation_play()
+
+        elif scene.audacity_mode == "STRIP":
+            # get old values 
+            self._old_use_preview_range = scene.use_preview_range
+            self._old_preview_start = scene.frame_preview_start
+            self._old_preview_end = scene.frame_preview_end
+
+            scene.use_preview_range = True
+
+            strip_name = scene.send_strip
+            sequence = scene.sequence_editor
+            
+            bpy.ops.sequencer.set_range_to_strips(preview=True) #TODO remove op, better to just set the frame_preview scene properties
+            sound_in = frames_to_sec(sequence.sequences_all[strip_name].frame_offset_start) - 0.1
+            sound_out = frames_to_sec(sequence.sequences_all[strip_name].frame_duration - sequence.sequences_all[strip_name].frame_offset_end)
+
+            do_command('SelectTime:End="%f" RelativeTo="ProjectStart" Start="%f"' % (sound_out, sound_in))
+            scene.frame_current = sound_in
+            do_command("PlayLooped:")
+            bpy.ops.screen.animation_play()
+        
+        # set extra ui
+        args = (self, context)
+        self._handle = bpy.types.SpaceSequenceEditor.draw_handler_add(draw_play_helper_callback_px, args, 'WINDOW', 'POST_PIXEL')
+
+        # set modal
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def finish(self, context):
+        do_command("PlayStop:")
+        bpy.ops.screen.animation_cancel(restore_frame = False)
+        scene = context.scene
+
+        # remove extra ui
+        bpy.types.SpaceSequenceEditor.draw_handler_remove(self._handle, 'WINDOW')
+
+        # reset mute audio
+        scene.use_audio = self._old_use_audio
+        if scene.audacity_mode == "STRIP":
+            scene.use_preview_range = self._old_use_preview_range
+            scene.frame_preview_start = self._old_preview_start
+            scene.frame_preview_end = self._old_preview_end
+
+    def cancel(self, context):
+        do_command("Stop:")
+        bpy.ops.screen.animation_cancel(restore_frame = False)
+        scene = context.scene
+
+        # remove extra ui
+        bpy.types.SpaceSequenceEditor.draw_handler_remove(self._handle, 'WINDOW')
+
+        # reset audio and range
+        scene.use_audio = self._old_use_audio
+        scene.frame_current = self._old_frame_current
+        if scene.audacity_mode == "STRIP":
+            scene.use_preview_range = self._old_use_preview_range
+            scene.frame_preview_start = self._old_preview_start
+            scene.frame_preview_end = self._old_preview_end
+
 
 
 # get unique name
