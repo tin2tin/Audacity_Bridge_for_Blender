@@ -511,7 +511,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        if scene.sequence_editor:
+        if scene.sequence_editor and scene.audacity_send:
             if not context.screen.is_animation_playing:
                 if scene.audacity_mode == "STRIP" and scene.send_strip == "":
                     return False
@@ -759,6 +759,7 @@ def register():
     for i in classes:
         register_class(i)
     bpy.types.Scene.send_strip = bpy.props.StringProperty("")
+    bpy.types.Scene.audacity_send = bpy.props.BoolProperty()
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
     bpy.types.Scene.record_start = -1
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
@@ -777,6 +778,7 @@ def unregister():
     for i in classes:
         unregister_class(i)
     del bpy.types.Scene.send_strip
+    del bpy.types.Scene.audacity_send
     del bpy.types.Scene.audacity_mode
 
 
