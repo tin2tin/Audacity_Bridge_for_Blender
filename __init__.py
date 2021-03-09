@@ -517,7 +517,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                     
         else:
             do_command("PlayStop:")
-            bpy.ops.screen.animation_play()
+            bpy.ops.screen.animation_cancel(restore_frame = False)
             bpy.ops.anim.previewrange_clear()
             bpy.context.scene.use_audio = False
         return {"FINISHED"}
