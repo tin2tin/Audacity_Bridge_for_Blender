@@ -359,6 +359,9 @@ class SEQUENCER_OT_send_to_audacity(bpy.types.Operator):
         do_command("FitV:")
         set_volume(strip, True)
 
+        # something went to audacity from this scene
+        scene.audacity_send = True
+
         return {"FINISHED"}
 
 
@@ -438,6 +441,9 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         do_command("FitInWindow:")
         do_command("FitV:")
 
+        # something went to audacity from this scene
+        scene.audacity_send = True
+
         return {"FINISHED"}
 
 
@@ -463,6 +469,9 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
 
         do_command("Record1stChoice:")
         bpy.ops.screen.animation_play()
+
+        # something went to audacity from this scene
+        scene.audacity_send = True
 
         return {"FINISHED"}
 
