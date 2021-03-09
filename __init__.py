@@ -475,26 +475,33 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(cls, context):
+        if context.scene.sequence_editor:
+            return True           
+
     def execute(self, context):
-        if not bpy.context.scene.sequence_editor:
-            context.scene.sequence_editor_create()
+        
         scene = context.scene
         sequence = scene.sequence_editor
         screen = context.screen
 
         if not screen.is_animation_playing:
+
             if scene.audacity_mode == "RECORD":
                 bpy.context.scene.use_audio = True
-                do_command("PlayStop:")
+                do_command("PlayLooped:")
                 bpy.ops.screen.animation_play()
+
             if scene.audacity_mode == "SEQUENCE":
                 bpy.context.scene.use_audio = True
                 sound_in = frames_to_sec(scene.frame_current)
                 sound_out = frames_to_sec(scene.frame_end)
                 sound_in = str(sound_in)
                 do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                do_command("PlayStop:")
+                do_command("PlayLooped:")
                 bpy.ops.screen.animation_play()
+
             if scene.audacity_mode == "STRIP":
                 strip_name = scene.send_strip
                 if strip_name != "":
@@ -505,8 +512,9 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                     scene.frame_current = sound_in
                     bpy.context.scene.use_audio = True
                     do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                    do_command("PlayStop:")
+                    do_command("PlayLooped:")
                     bpy.ops.screen.animation_play()
+                    
         else:
             do_command("PlayStop:")
             bpy.ops.screen.animation_play()
@@ -644,7 +652,7 @@ def register():
 
     for i in classes:
         register_class(i)
-    bpy.types.Scene.send_strip = bpy.props.StringProperty("")
+    bpy.types.Scene.send_strip = bpy.props.StringProperty(name="Audacity send strip")
     bpy.types.Scene.record_start = bpy.props.IntProperty(default=-1)
     bpy.types.Scene.record_start = -1
     bpy.types.Scene.audacity_mode = bpy.props.EnumProperty(
