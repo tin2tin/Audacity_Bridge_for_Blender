@@ -89,14 +89,14 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
         seq_ops = bpy.ops.sequencer
         strip_name = props.send_strip
 
-        if bpy.types.Scene.record_start != -1 and mode  == "RECORD":
+        if props.record_start != -1 and mode  == "RECORD":
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,
-                frame_start=bpy.types.Scene.record_start,
+                frame_start=props.record_start,
                 channel=find_completely_empty_channel(),
             )
-            bpy.types.Scene.record_start = -1
+            props.record_start = -1
         elif strip_name != "" and mode == "STRIP":
             sound_start = sequence.sequences_all[strip_name].frame_start
             sound_in = sequence.sequences_all[strip_name].frame_final_start
