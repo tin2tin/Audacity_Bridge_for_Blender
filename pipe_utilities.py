@@ -19,13 +19,12 @@ def return_audacity_pipe():
     try:
         time.sleep(0.01)
         TOPIPE = open(PIPE_TO_AUDACITY, "w")
-        print("Audacity Tools --- File to write to has been opened")
+        # print("Audacity Tools --- File to write to has been opened")
         FROMPIPE = open(PIPE_FROM_AUDACITY, "r")
-        print("Audacity Tools --- File to read from has now been opened too\r\n")
+        # print("Audacity Tools --- File to read from has now been opened too\r\n")
     except:
-        print(
-            "Audacity Tools --- Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender."
-        )
+        pass
+        # print("Audacity Tools --- Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender.")
     
     return TOPIPE, FROMPIPE, EOL
 
@@ -34,6 +33,8 @@ TOPIPE, FROMPIPE, EOL = return_audacity_pipe()
 
 
 def check_pipe(launch=True):
+    print("Audacity Tools --- Looking for Audacity pipe")
+
     global TOPIPE
     global FROMPIPE
     global EOL
@@ -55,6 +56,7 @@ def check_pipe(launch=True):
         return True
 
     elif launch:
+        print("Audacity Tools --- Trying to launch Audacity")
         if launch_audacity():
             time.sleep(get_addon_preferences().audacity_waiting_time)
             _to, _from, _eol = return_audacity_pipe()
