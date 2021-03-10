@@ -23,8 +23,8 @@ class AUDACITYTOOLS_PR_properties(bpy.types.PropertyGroup) :
             ("STRIP", "Strip", ""),
             ("SEQUENCE", "Sequence", ""),
             ("RECORD", "Record", ""),
-        ),
-    )
+            ),
+        )
 
 
 ### REGISTER ---
