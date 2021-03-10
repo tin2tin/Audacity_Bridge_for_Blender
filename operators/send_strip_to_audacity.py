@@ -1,6 +1,6 @@
 import bpy
 
-from ..pipe_utilities import do_command
+from .. import pipe_utilities
 
 
 # return active strip
@@ -70,14 +70,14 @@ def set_volume(strip, active):
                             else:
                                 frame = f.co[0]
                             if active:
-                                do_command(
+                                pipe_utilities.do_command(
                                     "SetEnvelope: Time="
                                     + str(frames_to_sec(frame - sound_start))
                                     + " Value="
                                     + str(volume)
                                 )
                             else:
-                                do_command(
+                                pipe_utilities.do_command(
                                     "SetEnvelope: Time="
                                     + str(frames_to_sec(frame))
                                     + " Value="
@@ -86,14 +86,14 @@ def set_volume(strip, active):
 
     if fade_curve is None and volume != 1:
         if mode == "STRIP":
-            do_command(
+            pipe_utilities.do_command(
                 "SetEnvelope: Time="
                 + str(frames_to_sec(name.frame_offset_start + 2))
                 + " Value="
                 + str(volume)
             )
         if mode == "SEQUENCE":
-            do_command(
+            pipe_utilities.do_command(
                 "SetEnvelope: Time="
                 + str(frames_to_sec(name.frame_final_start + 2))
                 + " Value="
@@ -111,6 +111,11 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
+        # check if pipe available
+        if not pipe_utilities.check_pipe():
+            self.report({"WARNING"}, "No pipe available")
+            return {"FINISHED"}
+
         if not bpy.context.scene.sequence_editor:
             bpy.context.scene.sequence_editor_create()
         strip = act_strip(context)
@@ -136,11 +141,11 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
         sound_in = str(sound_in)
 
         # Import.
-        do_command("SelectAll")
-        do_command("RemoveTracks")
-        do_command(f"Import2: Filename={filename}")
+        pipe_utilities.do_command("SelectAll")
+        pipe_utilities.do_command("RemoveTracks")
+        pipe_utilities.do_command(f"Import2: Filename={filename}")
         # Label.
-        do_command(
+        pipe_utilities.do_command(
             (
                 "SelectTime:End='"
                 + sound_out
@@ -149,12 +154,12 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
                 + "'"
             ).replace("'", '"')
         )
-        do_command("AddLabel:")
-        do_command(("SetLabel:Label='0' Text='Used in Blender'").replace("'", '"'))
+        pipe_utilities.do_command("AddLabel:")
+        pipe_utilities.do_command(("SetLabel:Label='0' Text='Used in Blender'").replace("'", '"'))
         # View.
-        do_command("ZoomSel:")
-        do_command("FitInWindow:")
-        do_command("FitV:")
+        pipe_utilities.do_command("ZoomSel:")
+        pipe_utilities.do_command("FitInWindow:")
+        pipe_utilities.do_command("FitV:")
         set_volume(strip, True)
 
         return {"FINISHED"}
