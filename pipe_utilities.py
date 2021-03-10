@@ -13,12 +13,12 @@ else:
 try:
     time.sleep(0.01)
     TOPIPE = open(PIPE_TO_AUDACITY, "w")
-    print("-- File to write to has been opened")
+    print("Audacity Tools --- File to write to has been opened")
     FROMPIPE = open(PIPE_FROM_AUDACITY, "r")
-    print("-- File to read from has now been opened too\r\n")
+    print("Audacity Tools --- File to read from has now been opened too\r\n")
 except:
     print(
-        "Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender."
+        "Audacity Tools --- Unable to run. Ensure Audacity is running with mod-script-pipe. Or try to restart Blender."
     )
 
 
