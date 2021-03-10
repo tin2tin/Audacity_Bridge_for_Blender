@@ -25,7 +25,8 @@ bl_info = {
     "location": "Sequencer Sidebar",
     "description": "Open Sound Strip, Sequence or Record in Audacity",
     "warning": "Before running this add-on, Audacity must be running with Preferences > Modules > mod_script_pipe Enabled(after a restart of Audacity).",
-    "wiki_url": "",
+    "doc_url": "https://github.com/tin2tin/audacity_tools_for_blender/blob/main/README.md",
+    "tracker_url": "https://github.com/tin2tin/audacity_tools_for_blender/issues/new",
     "category": "Sequencer",
 }
 
