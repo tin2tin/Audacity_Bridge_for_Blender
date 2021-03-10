@@ -17,13 +17,15 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
 
     def draw(self, context):
         scene = context.scene
+        props = scene.audacity_tools_props
         screen = context.screen
         layout = self.layout
 
-        layout.prop(scene, "audacity_mode", text="")
+        layout.prop(props, "audacity_mode", text="")
         col = layout.column(align=(False))
 
-        if scene.audacity_mode == "STRIP":
+        # STRIP MODE
+        if props.audacity_mode == "STRIP":
             col.operator("sequencer.send_strip_to_audacity", icon="EXPORT")
             col.operator(
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
@@ -42,7 +44,9 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                 row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
             else:
                 row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False) 
-        if scene.audacity_mode == "SEQUENCE":
+        
+        # SEQUENCE MODE
+        elif props.audacity_mode == "SEQUENCE":
             col.separator()
             col.operator(
                 "sequencer.send_project_to_audacity",
@@ -65,8 +69,10 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
             if scene.use_audio:
                 row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
             else:
-                row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False)                
-        if scene.audacity_mode == "RECORD":
+                row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False)    
+
+        # RECORD MODE
+        elif props.audacity_mode == "RECORD":
             sub = col.column() 
             if not screen.is_animation_playing:
                 col.operator(
@@ -77,7 +83,7 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                     "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
             sub = col.column()
-            sub.active = not bpy.types.Scene.record_start == -1
+            sub.active = not props.record_start == -1
             sub.operator(
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
