@@ -49,10 +49,11 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
             bpy.context.scene.sequence_editor_create()
         strip = send_strip_to_audacity.act_strip(context)
         scene = bpy.context.scene
+        props = scene.audacity_tools_props
         sequence = scene.sequence_editor
         render = bpy.context.scene.render
         fps = round((render.fps / render.fps_base), 3)
-        bpy.types.Scene.record_start = -1
+        props.record_start = -1
 
         do_command("SelectAll")
         do_command("RemoveTracks")
