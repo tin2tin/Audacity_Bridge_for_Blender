@@ -7,17 +7,18 @@ from ..pipe_utilities import do_command
 
 # get unique name
 def get_unique_name_from_dir(directory, base_name):
+    base_name_no_ext, ext = os.path.splitext(base_name)
 
     #check for dupes
     old_names = []
     for name in os.listdir(directory):
-        if base_name in name:
+        if base_name_no_ext in name:
             old_names.append(name)
     
     count = 0
     new_name = base_name
     while new_name in old_names:
-        new_name = base_name + "_" + str(count).zfill(3)
+        new_name = base_name_no_ext + "_" + str(count).zfill(3) + ext
         count += 1
 
     return new_name
