@@ -39,6 +39,7 @@ from . import   (
     addon_prefs,
     gui,
     properties,
+    startup_handler,
 )
 
 from .operators import (
@@ -59,6 +60,7 @@ def register():
     addon_prefs.register()
     gui.register()
     properties.register()
+    startup_handler.register()
 
     play_stop_in_audacity.register()
     receive_from_audacity.register()
@@ -72,6 +74,7 @@ def unregister():
     addon_prefs.unregister()
     gui.unregister()
     properties.unregister()
+    startup_handler.unregister()
 
     play_stop_in_audacity.unregister()
     receive_from_audacity.unregister()
