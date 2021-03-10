@@ -18,15 +18,16 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
         if not bpy.context.scene.sequence_editor:
             context.scene.sequence_editor_create()
         scene = context.scene
+        props = scene.audacity_tools_props
         sequence = scene.sequence_editor
         screen = context.screen
 
         if not screen.is_animation_playing:
-            if scene.audacity_mode == "RECORD":
+            if props.audacity_mode == "RECORD":
                 bpy.context.scene.use_audio = True
                 do_command("PlayStop:")
                 bpy.ops.screen.animation_play()
-            if scene.audacity_mode == "SEQUENCE":
+            elif props.audacity_mode == "SEQUENCE":
                 bpy.context.scene.use_audio = True
                 sound_in = frames_to_sec(scene.frame_current)
                 sound_out = frames_to_sec(scene.frame_end)
@@ -34,8 +35,8 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                 do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
                 do_command("PlayStop:")
                 bpy.ops.screen.animation_play()
-            if scene.audacity_mode == "STRIP":
-                strip_name = scene.send_strip
+            elif props.audacity_mode == "STRIP":
+                strip_name = props.send_strip
                 if strip_name != "":
                     bpy.ops.sequencer.set_range_to_strips(preview=True)
                     sound_in = frames_to_sec(sequence.sequences_all[strip_name].frame_offset_start)
