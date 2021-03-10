@@ -21,7 +21,8 @@ def frames_to_sec(frames):
 # Get f-curves and set then as envelopes.
 def set_volume(strip, active):
     scene = bpy.context.scene
-    mode = scene.audacity_mode
+    props = scene.audacity_tools_props
+    mode = props.audacity_mode
     sequence = scene.sequence_editor
     volume = strip.volume
     name = sequence.sequences_all[strip.name]
@@ -114,9 +115,10 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
             bpy.context.scene.sequence_editor_create()
         strip = act_strip(context)
         scene = bpy.context.scene
+        props = scene.audacity_tools_props
         sequence = scene.sequence_editor
         name = sequence.sequences_all[strip.name]
-        bpy.types.Scene.record_start = -1
+        props.record_start = -1
 
         if strip == None:
             return {"CANCELLED"}
@@ -124,8 +126,8 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
             return {"CANCELLED"}
         filename = chr(34) + bpy.path.abspath(name.sound.filepath) + chr(34)
 
-        bpy.types.Scene.send_strip = strip.name
-        print("Sending " + bpy.types.Scene.send_strip)
+        props.send_strip = strip.name
+        print("Sending " + props.send_strip)
         render = bpy.context.scene.render
         fps = round((render.fps / render.fps_base), 3)
 
