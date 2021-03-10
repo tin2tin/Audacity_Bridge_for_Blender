@@ -38,6 +38,7 @@ import bpy
 from . import   (
     addon_prefs,
     gui,
+    properties,
 )
 
 from .operators import (
@@ -57,6 +58,7 @@ def register():
 
     addon_prefs.register()
     gui.register()
+    properties.register()
 
     play_stop_in_audacity.register()
     receive_from_audacity.register()
@@ -69,6 +71,7 @@ def unregister():
 
     addon_prefs.unregister()
     gui.unregister()
+    properties.unregister()
 
     play_stop_in_audacity.unregister()
     receive_from_audacity.unregister()
