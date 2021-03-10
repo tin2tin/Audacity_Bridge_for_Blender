@@ -65,7 +65,8 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         filepath = self.filepath
         scene = context.scene
-        mode = scene.audacity_mode
+        props = scene.audacity_tools_props
+        mode = props.audacity_mode
 
         if mode == "SEQUENCE":
             do_command("NewStereoTrack")
@@ -83,10 +84,10 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
             do_command("Undo")
             do_command("Undo")
         time.sleep(0.1)
-        scene = context.scene
+
         sequence = scene.sequence_editor
         seq_ops = bpy.ops.sequencer
-        strip_name = scene.send_strip
+        strip_name = props.send_strip
 
         if bpy.types.Scene.record_start != -1 and mode  == "RECORD":
             seq_ops.sound_strip_add(
