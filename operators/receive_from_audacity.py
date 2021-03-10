@@ -2,7 +2,7 @@ import bpy, os, time
 
 from bpy_extras.io_utils import ExportHelper
 
-from ..pipe_utilities import do_command
+from .. import pipe_utilities
 
 
 # get unique name
@@ -64,26 +64,31 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
                 self.filepath = base_path
 
     def execute(self, context):
+        # check if pipe available
+        if not pipe_utilities.check_pipe(False):
+            self.report({"WARNING"}, "No pipe available")
+            return {"FINISHED"}
+
         filepath = self.filepath
         scene = context.scene
         props = scene.audacity_tools_props
         mode = props.audacity_mode
 
         if mode == "SEQUENCE":
-            do_command("NewStereoTrack")
-            do_command(
+            pipe_utilities.do_command("NewStereoTrack")
+            pipe_utilities.do_command(
                 ("SelectTime:End='1' RelativeTo='ProjectStart' Start='0'").replace(
                     "'", '"'
                 )
             )
-            do_command("Silence:Duration='1'").replace("'", '"')
-            do_command("MixAndRender")
-        do_command("SelAllTracks")
-        do_command("SelTrackStartToEnd")
-        do_command(f"Export2: Filename={filepath} NumChannels=2")
+            pipe_utilities.do_command("Silence:Duration='1'").replace("'", '"')
+            pipe_utilities.do_command("MixAndRender")
+        pipe_utilities.do_command("SelAllTracks")
+        pipe_utilities.do_command("SelTrackStartToEnd")
+        pipe_utilities.do_command(f"Export2: Filename={filepath} NumChannels=2")
         if mode == "SEQUENCE":
-            do_command("Undo")
-            do_command("Undo")
+            pipe_utilities.do_command("Undo")
+            pipe_utilities.do_command("Undo")
         time.sleep(0.1)
 
         sequence = scene.sequence_editor
