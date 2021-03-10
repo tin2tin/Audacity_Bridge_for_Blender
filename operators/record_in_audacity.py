@@ -1,5 +1,7 @@
 import bpy
 
+from ..pipe_utilities import do_command
+
 
 class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
     """Record Audacity"""

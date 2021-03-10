@@ -1,7 +1,7 @@
 import bpy
 
 
-class SEQUENCER_PT_audacity_tools(Panel):
+class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
     bl_idname = "SEQUENCER_PT_audacity_tools"

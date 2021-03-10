@@ -1,4 +1,8 @@
-import bpy
+import bpy, os, time
+
+from bpy_extras.io_utils import ExportHelper
+
+from ..pipe_utilities import do_command
 
 
 # get unique name
@@ -19,14 +23,28 @@ def get_unique_name_from_dir(directory, base_name):
     return new_name
 
 
-class SEQUENCER_OT_receive_from_audacity(Operator, ExportHelper):
+def find_completely_empty_channel():
+    if not bpy.context.scene.sequence_editor:
+        bpy.context.scene.sequence_editor_create()
+    sequences = bpy.context.sequences
+    if not sequences:
+        addSceneChannel = 1
+    else:
+        channels = [s.channel for s in sequences]
+        channels = sorted(list(set(channels)))
+        empty_channel = channels[-1] + 1
+        addSceneChannel = empty_channel
+    return addSceneChannel
+
+
+class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
 
     bl_idname = "sequencer.receive_from_audacity"
     bl_label = "Receive"
 
     filename_ext = ".wav"
 
-    filter_glob: StringProperty(
+    filter_glob: bpy.props.StringProperty(
         default="*.wav",
         options={"HIDDEN"},
         maxlen=255,

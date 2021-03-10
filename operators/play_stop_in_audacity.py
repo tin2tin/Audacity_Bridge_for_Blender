@@ -1,5 +1,9 @@
 import bpy
 
+from .send_strip_to_audacity import frames_to_sec
+
+from ..pipe_utilities import do_command
+
 
 class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     """Stop Audacity"""

@@ -1,5 +1,39 @@
 import bpy
 
+from . import send_strip_to_audacity
+from ..pipe_utilities import do_command
+
+
+# return sound sequences of timeline
+def collect_files():
+    scene = bpy.context.scene
+    sequencer = scene.sequence_editor
+    sequences = sequencer.sequences_all
+    export_sequences = []
+    for sequence in sequences:
+        if sequence.type == "SOUND":
+            export_sequences.append(sequence)
+    return export_sequences
+
+
+# return tracks
+def get_tracks(sequences):
+    maximum_channel = 0
+    for sequence in sequences:
+        if sequence.channel > maximum_channel:
+            maximum_channel = sequence.channel
+    tracks = [list() for x in range(maximum_channel + 1)]
+    index = 0
+    for sequence in sequences:
+        index = index + 1
+        tracks[sequence.channel - 1].append([index, sequence])
+    sorted_tracks = []
+    for track in tracks:
+        if len(track) > 0:
+            sorted_track = sorted(track, key=lambda x: x[1].frame_final_start)
+            sorted_tracks.append(sorted_track)
+    return sorted_tracks
+
 
 class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
     """Send to Audacity"""
@@ -13,7 +47,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
     def execute(self, context):
         if not bpy.context.scene.sequence_editor:
             bpy.context.scene.sequence_editor_create()
-        strip = act_strip(context)
+        strip = send_strip_to_audacity.act_strip(context)
         scene = bpy.context.scene
         sequence = scene.sequence_editor
         render = bpy.context.scene.render
@@ -37,15 +71,15 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
                 source, sequence = sequence_data
 
                 if sequence.type == "SOUND":
-                    sound_in = frames_to_sec(sequence.frame_final_start)
-                    sound_out = sound_in + frames_to_sec(sequence.frame_final_duration)
-                    sound_offset_in = frames_to_sec(sequence.frame_offset_start)
-                    sound_offset_out = frames_to_sec(sequence.frame_offset_end)
-                    length = frames_to_sec(sequence.frame_duration)
+                    sound_in = send_strip_to_audacity.frames_to_sec(sequence.frame_final_start)
+                    sound_out = sound_in + send_strip_to_audacity.frames_to_sec(sequence.frame_final_duration)
+                    sound_offset_in = send_strip_to_audacity.frames_to_sec(sequence.frame_offset_start)
+                    sound_offset_out = send_strip_to_audacity.frames_to_sec(sequence.frame_offset_end)
+                    length = send_strip_to_audacity.frames_to_sec(sequence.frame_duration)
                     filename = (
                         chr(34) + bpy.path.abspath(sequence.sound.filepath) + chr(34)
                     )
-                    stream_start = frames_to_sec(sequence.frame_offset_start)
+                    stream_start = send_strip_to_audacity.frames_to_sec(sequence.frame_offset_start)
                     do_command(f"Import2: Filename={filename}")
                     # Remove unused material.
                     do_command(
@@ -72,7 +106,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
                         ).replace("'", '"')
                     )
                     do_command("Paste:")
-                    set_volume(sequence, False)
+                    send_strip_to_audacity.set_volume(sequence, False)
         do_command("ZoomSel:")
         do_command("FitInWindow:")
         do_command("FitV:")
