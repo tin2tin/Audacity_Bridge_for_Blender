@@ -33,7 +33,7 @@ def return_audacity_pipe():
 TOPIPE, FROMPIPE, EOL = return_audacity_pipe()
 
 
-def check_pipe():
+def check_pipe(launch=True):
     global TOPIPE
     global FROMPIPE
     global EOL
@@ -54,15 +54,16 @@ def check_pipe():
         EOL = _eol
         return True
 
-    elif launch_audacity():
-        time.sleep(get_addon_preferences().audacity_waiting_time)
-        _to, _from, _eol = return_audacity_pipe()
-        if _to is not None:
-            TOPIPE = _to
-            FROMPIPE = _from
-            EOL = _eol
-            return True
-            
+    elif launch:
+        if launch_audacity():
+            time.sleep(get_addon_preferences().audacity_waiting_time)
+            _to, _from, _eol = return_audacity_pipe()
+            if _to is not None:
+                TOPIPE = _to
+                FROMPIPE = _from
+                EOL = _eol
+                return True
+
     return False
 
 
