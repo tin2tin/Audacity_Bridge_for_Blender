@@ -78,7 +78,7 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                 col.operator(
                     "sequencer.record_in_audacity", text="Record", icon="RADIOBUT_ON"
                 )
-            elif bpy.types.Scene.record_start != -1:
+            elif props.record_start != -1:
                 col.operator(
                     "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
