@@ -13,11 +13,14 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
+
         if not bpy.context.scene.sequence_editor:
             bpy.context.scene.sequence_editor_create()
         scene = bpy.context.scene
+        props = scene.audacity_tools_props
         sequence = scene.sequence_editor
-        bpy.types.Scene.record_start = scene.frame_current
+
+        props.record_start = scene.frame_current
         bpy.context.scene.use_audio = True
 
         do_command("SelectAll")
