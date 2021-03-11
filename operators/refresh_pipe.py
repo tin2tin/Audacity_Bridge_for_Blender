@@ -14,7 +14,7 @@ class SEQUENCER_OT_refresh_audacity_pipe(bpy.types.Operator):
 
     def execute(self, context):
         # check if pipe available
-        pipe_utilities.check_pipe()
+        pipe_utilities.check_set_pipe()
 
         return {"FINISHED"}
 

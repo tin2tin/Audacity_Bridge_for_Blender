@@ -51,6 +51,10 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
         maxlen=255,
     )
 
+    @classmethod
+    def poll(cls, context):
+        return context.window_manager.audacity_tools_pipe_available
+
     def __init__(self):
         # if file saved, get proper unique name
         if bpy.data.filepath:

@@ -14,12 +14,16 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.window_manager.audacity_tools_pipe_available
+
     def execute(self, context):
         # check if pipe available
-        if not pipe_utilities.check_pipe(False):
+        if not pipe_utilities.check_pipe():
             self.report({"WARNING"}, "No pipe available")
             return {"FINISHED"}
-
+            
         if not bpy.context.scene.sequence_editor:
             context.scene.sequence_editor_create()
         scene = context.scene

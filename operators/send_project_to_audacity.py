@@ -44,6 +44,10 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.window_manager.audacity_tools_pipe_available
+
     def execute(self, context):
         # check if pipe available
         if not pipe_utilities.check_pipe():
