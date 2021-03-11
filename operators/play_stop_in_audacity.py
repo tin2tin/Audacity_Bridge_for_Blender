@@ -21,9 +21,9 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     def execute(self, context):
         # check if pipe available
         if not pipe_utilities.check_pipe():
-            self.report({"WARNING"}, "No pipe available")
+            self.report({"WARNING"}, "No pipe available, try refresh operator")
             return {"FINISHED"}
-            
+
         if not bpy.context.scene.sequence_editor:
             context.scene.sequence_editor_create()
         scene = context.scene
