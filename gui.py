@@ -23,7 +23,9 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
 
         # pipe infos
         pipe = context.window_manager.audacity_tools_pipe_available
-        row = layout.row(align=True)
+
+        box = layout.box()
+        row = box.row(align=True)
         if pipe:
             row.label(text = "Pipe available", icon = "CHECKMARK")
         else:
