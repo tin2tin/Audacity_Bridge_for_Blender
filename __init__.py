@@ -49,6 +49,7 @@ from .operators import (
     record_in_audacity,
     send_project_to_audacity,
     send_strip_to_audacity,
+    refresh_pipe,
 )
 
 
@@ -68,6 +69,7 @@ def register():
     record_in_audacity.register()
     send_project_to_audacity.register()
     send_strip_to_audacity.register()
+    refresh_pipe.register()
 
 
 def unregister():
@@ -82,3 +84,4 @@ def unregister():
     record_in_audacity.unregister()
     send_project_to_audacity.unregister()
     send_strip_to_audacity.unregister()
+    refresh_pipe.unregister()
