@@ -31,7 +31,7 @@ def return_audacity_pipe():
     return TOPIPE, FROMPIPE, EOL
 
 
-def check_pipe(launch=True):
+def check_set_pipe(launch=True):
     print("Audacity Tools --- Looking for Audacity pipe")
 
     winman = bpy.data.window_managers[0]
@@ -71,6 +71,21 @@ def check_pipe(launch=True):
                 return True
 
     winman.audacity_tools_pipe_available = False
+    return False
+
+
+def check_pipe():
+    winman = bpy.data.window_managers[0]
+    if TOPIPE is not None:
+        try:
+            TOPIPE.write("ToggleScrubRuler:" + EOL)
+            TOPIPE.write("ToggleScrubRuler:" + EOL)
+            TOPIPE.flush()
+            winman.audacity_tools_pipe_available = True
+            return True
+        except OSError:
+            pass
+    winman.audacity_tools_pipe_available = False   
     return False
 
 

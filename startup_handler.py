@@ -1,13 +1,13 @@
 import bpy
 
 from bpy.app.handlers import persistent
-from .pipe_utilities import check_pipe
+from .pipe_utilities import check_set_pipe
 
 
 @persistent
 def audacity_tools_startup(scene):
     # check pipe
-    check_pipe(False)
+    check_set_pipe(False)
 
     # reset properties
     for s in bpy.data.scenes:
