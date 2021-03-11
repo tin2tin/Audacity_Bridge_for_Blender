@@ -15,10 +15,10 @@ class AUDACITYTOOLS_PF_Addon_Prefs(bpy.types.AddonPreferences):
     audacity_waiting_time : bpy.props.FloatProperty(
         name = "Audacity waiting time",
         description = "Waiting time in seconds for Audacity opening",
-        default = 5.0,
+        default = 0.5,
         precision = 1,
-        min = 2.0,
-        max = 20.0,
+        min = 0.3,
+        max = 10.0,
     )
 
 
