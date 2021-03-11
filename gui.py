@@ -21,6 +21,14 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
         screen = context.screen
         layout = self.layout
 
+        # pipe infos
+        pipe = context.window_manager.audacity_tools_pipe_available
+        if pipe:
+            layout.label(text = "Pipe available", icon = "CHECKMARK")
+        else:
+            layout.label(text = "Pipe unavailable", icon = "ERROR")
+
+
         layout.prop(props, "audacity_mode", text="")
         col = layout.column(align=(False))
 
