@@ -1,12 +1,14 @@
-import sys, time, os
+import bpy, sys, time, os
 
 from .addon_prefs import get_addon_preferences
 
 
+TOPIPE = FROMPIPE = EOL = None
+
 def return_audacity_pipe():
     TOPIPE = None
     FROMPIPE = None
-    EOL = None
+    EOL = None       
     # Platform specific constants
     if sys.platform == "win32":
         PIPE_TO_AUDACITY = "\\\\.\\pipe\\ToSrvPipe"
@@ -29,11 +31,10 @@ def return_audacity_pipe():
     return TOPIPE, FROMPIPE, EOL
 
 
-TOPIPE, FROMPIPE, EOL = return_audacity_pipe()
-
-
 def check_pipe(launch=True):
     print("Audacity Tools --- Looking for Audacity pipe")
+
+    winman = bpy.data.window_managers[0]
 
     global TOPIPE
     global FROMPIPE
@@ -44,6 +45,7 @@ def check_pipe(launch=True):
             TOPIPE.write("ToggleScrubRuler:" + EOL)
             TOPIPE.write("ToggleScrubRuler:" + EOL)
             TOPIPE.flush()
+            winman.audacity_tools_pipe_available = True
             return True
         except OSError:
             pass
@@ -53,6 +55,7 @@ def check_pipe(launch=True):
         TOPIPE = _to
         FROMPIPE = _from
         EOL = _eol
+        winman.audacity_tools_pipe_available = True
         return True
 
     elif launch:
@@ -64,8 +67,10 @@ def check_pipe(launch=True):
                 TOPIPE = _to
                 FROMPIPE = _from
                 EOL = _eol
+                winman.audacity_tools_pipe_available = True
                 return True
 
+    winman.audacity_tools_pipe_available = False
     return False
 
 
