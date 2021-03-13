@@ -1,6 +1,6 @@
 import bpy
 
-from ..pipe_utilities import do_command
+from .. import pipe_utilities
 
 
 class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
@@ -12,7 +12,15 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.window_manager.audacity_tools_pipe_available
+
     def execute(self, context):
+        # check if pipe available
+        if not pipe_utilities.check_pipe():
+            self.report({"WARNING"}, "No pipe available, try refresh operator")
+            return {"FINISHED"}
 
         if not bpy.context.scene.sequence_editor:
             bpy.context.scene.sequence_editor_create()
@@ -23,10 +31,10 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
         props.record_start = scene.frame_current
         bpy.context.scene.use_audio = True
 
-        do_command("SelectAll")
-        do_command("RemoveTracks")
+        pipe_utilities.do_command("SelectAll")
+        pipe_utilities.do_command("RemoveTracks")
 
-        do_command("Record1stChoice:")
+        pipe_utilities.do_command("Record1stChoice:")
         bpy.ops.screen.animation_play()
 
         return {"FINISHED"}
