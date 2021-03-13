@@ -69,7 +69,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         # check if pipe available
-        if not pipe_utilities.check_pipe(False):
+        if not pipe_utilities.check_pipe():
             self.report({"WARNING"}, "No pipe available, try refresh operator")
             return {"FINISHED"}
 
