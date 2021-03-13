@@ -14,6 +14,7 @@ def audacity_tools_startup(scene):
         props = s.audacity_tools_props
         props.send_strip = ""
         props.record_start = -1
+        props.record_end = -1
     print("Audacity Tools --- Properties reset")
 
 

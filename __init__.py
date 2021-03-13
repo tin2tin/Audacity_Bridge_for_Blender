@@ -19,7 +19,7 @@ Created by Tintwotin
 
 bl_info = {
     "name": "Audacity Tools",
-    "author": "Tintwotin, Steve(Audacity)",
+    "author": "Tintwotin, Samy Tichadou, Steve(Audacity)",
     "version": (0, 8),
     "blender": (2, 90, 0),
     "location": "Sequencer Sidebar",

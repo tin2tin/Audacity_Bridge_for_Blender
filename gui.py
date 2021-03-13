@@ -43,7 +43,7 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
             col.separator()
-            row = col.row(align=True)
+            row = col.row(align=False)
             if not screen.is_animation_playing:
                 row.operator(
                     "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
@@ -69,7 +69,7 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                 "sequencer.receive_from_audacity", text="Receive Mixdown", icon="IMPORT"
             )
             col.separator()
-            row = col.row(align=True)
+            row = col.row(align=False)
             if not screen.is_animation_playing:
                 row.operator(
                     "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
@@ -86,7 +86,7 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
         # RECORD MODE
         elif props.audacity_mode == "RECORD":
             sub = col.column() 
-            if not screen.is_animation_playing:
+            if not screen.is_animation_playing or (props.record_end !=-1 and props.record_start !=-1):
                 col.operator(
                     "sequencer.record_in_audacity", text="Record", icon="RADIOBUT_ON"
                 )
@@ -94,11 +94,27 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
                 col.operator(
                     "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
                 )
+
             sub = col.column()
             sub.active = not props.record_start == -1
             sub.operator(
                 "sequencer.receive_from_audacity", text="Receive", icon="IMPORT"
             )
+            if props.record_start != -1 and props.record_end != -1:
+                col.separator()
+                row = col.row(align=False)
+                if not screen.is_animation_playing:
+                    row.operator(
+                        "sequencer.play_stop_in_audacity", text="Play", icon="PLAY"
+                    )
+                else:
+                    row.operator(
+                        "sequencer.play_stop_in_audacity", text="Stop", icon="SNAP_FACE"
+                    )
+                if scene.use_audio:
+                    row.prop(scene, "use_audio", text="",icon="PLAY_SOUND", emboss = False)
+                else:
+                    row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False) 
 
 
 ### REGISTER ---
