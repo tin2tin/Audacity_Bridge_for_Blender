@@ -88,14 +88,14 @@ def set_volume(strip, strip_mode):
         if mode == "STRIP":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_offset_start))
+                + str(frames_to_sec(name.frame_offset_start+2))
                 + " Value="
                 + str(volume)
             )
         if mode == "SEQUENCE":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_final_start))
+                + str(frames_to_sec(name.frame_final_start+2))
                 + " Value="
                 + str(volume)
             )
