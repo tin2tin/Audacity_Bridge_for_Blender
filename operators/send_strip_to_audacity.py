@@ -13,9 +13,9 @@ def act_strip(context):
 
 def frames_to_sec(frames):
     render = bpy.context.scene.render
-    fps = round((render.fps / render.fps_base), 3)
-    frames = frames / fps
-    return frames
+    fps = render.fps / render.fps_base
+    sec = frames / fps
+    return sec
 
 
 # Get f-curves and set then as envelopes.
@@ -62,11 +62,11 @@ def set_volume(strip, strip_mode):
                             offset_start = sequence.sequences_all[
                                 strip.name
                             ].frame_offset_start
-                            # Fade out will not work on last frame. Audacity cuts it so add/subtract 2
+                            # Fade out will not work on last frame. Audacity cuts it so add/subtract value
                             if f.co[0] >= sound_end:
-                                frame = sound_end - 2
+                                frame = sound_end - 1
                             elif f.co[0] <= sound_start:
-                                frame = sound_start + 2
+                                frame = sound_start + 0.01
                             else:
                                 frame = f.co[0]
                             if strip_mode:
@@ -88,14 +88,14 @@ def set_volume(strip, strip_mode):
         if mode == "STRIP":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_offset_start+2))
+                + str(frames_to_sec(name.frame_offset_start)+0.01)
                 + " Value="
                 + str(volume)
             )
         if mode == "SEQUENCE":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_final_start+2))
+                + str(frames_to_sec(name.frame_final_start)+0.01)
                 + " Value="
                 + str(volume)
             )
