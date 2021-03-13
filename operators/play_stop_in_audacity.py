@@ -38,11 +38,11 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                 bpy.ops.screen.animation_play()
             elif props.audacity_mode == "SEQUENCE":
                 bpy.context.scene.use_audio = True
-                sound_in = frames_to_sec(scene.frame_current)
-                sound_out = frames_to_sec(scene.frame_end)
-                sound_in = str(sound_in)
-                pipe_utilities.do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                pipe_utilities.do_command("PlayStop:")
+                current_in = frames_to_sec(scene.frame_current)
+                range_in = frames_to_sec(scene.frame_start)
+                range_out = frames_to_sec(scene.frame_end)
+                pipe_utilities.do_command(("SelectTime:End='"+str(range_out)+"' RelativeTo='ProjectStart' Start='"+str(current_in)+"'").replace("'", '"'))
+                pipe_utilities.do_command("PlayLooped:")
                 bpy.ops.screen.animation_play()
             elif props.audacity_mode == "STRIP":
                 strip_name = props.send_strip
@@ -54,7 +54,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                     scene.frame_current = sound_in
                     bpy.context.scene.use_audio = True
                     pipe_utilities.do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                    pipe_utilities.do_command("PlayStop:")
+                    pipe_utilities.do_command("PlayLooped:")
                     bpy.ops.screen.animation_play()
         else:
             pipe_utilities.do_command("PlayStop:")
