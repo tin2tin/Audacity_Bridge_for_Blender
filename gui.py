@@ -57,12 +57,12 @@ class SEQUENCER_PT_audacity_tools(bpy.types.Panel):
             else:
                 row.prop(scene, "use_audio", text="",icon="OUTLINER_OB_SPEAKER", emboss = False) 
         
-        # SEQUENCE MODE
-        elif props.audacity_mode == "SEQUENCE":
+        # SEQUENCE or SELECTION MODE
+        elif props.audacity_mode == "SEQUENCE" or props.audacity_mode == "SELECTION":
             col.separator()
             col.operator(
                 "sequencer.send_project_to_audacity",
-                text="Send Sequence",
+                text="Send "+(props.audacity_mode).title(),
                 icon="EXPORT",
             )
             col.operator(

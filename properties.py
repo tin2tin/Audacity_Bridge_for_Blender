@@ -26,6 +26,7 @@ class AUDACITYTOOLS_PR_properties(bpy.types.PropertyGroup) :
         description="",
         items=(
             ("STRIP", "Strip", ""),
+            ("SELECTION", "Selection", ""),
             ("SEQUENCE", "Sequence", ""),
             ("RECORD", "Record", ""),
             ),
