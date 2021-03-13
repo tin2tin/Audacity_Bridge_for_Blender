@@ -32,7 +32,7 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
         screen = context.screen
 
         if not screen.is_animation_playing:
-            
+
             if props.audacity_mode == "RECORD" and props.record_start != -1 and props.record_end !=-1:
                 bpy.context.scene.use_audio = True
                 range_in = 0
@@ -49,8 +49,11 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
 
                     bpy.ops.screen.animation_play()
 
-            elif props.audacity_mode == "SEQUENCE":
+            elif props.audacity_mode == "SEQUENCE" or props.audacity_mode == "SELECTION":
                 bpy.context.scene.use_audio = True
+                scene.use_preview_range = True
+                scene.frame_preview_start = scene.frame_current
+                scene.frame_preview_end = scene.frame_end
                 current_in = frames_to_sec(scene.frame_current)
                 range_in = frames_to_sec(scene.frame_start)
                 range_out = frames_to_sec(scene.frame_end)
