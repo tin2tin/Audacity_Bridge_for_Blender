@@ -29,6 +29,7 @@ class SEQUENCER_OT_record_in_audacity(bpy.types.Operator):
         sequence = scene.sequence_editor
 
         props.record_start = scene.frame_current
+        props.record_end = -1
         bpy.context.scene.use_audio = True
 
         pipe_utilities.do_command("SelectAll")

@@ -128,6 +128,7 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
         sequence = scene.sequence_editor
         name = sequence.sequences_all[strip.name]
         props.record_start = -1
+        props.record_end = -1
 
         if strip == None:
             return {"CANCELLED"}

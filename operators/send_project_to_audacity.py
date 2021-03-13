@@ -63,6 +63,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         render = bpy.context.scene.render
         fps = round((render.fps / render.fps_base), 3)
         props.record_start = -1
+        props.record_end = -1
 
         pipe_utilities.do_command("SelectAll")
         pipe_utilities.do_command("RemoveTracks")

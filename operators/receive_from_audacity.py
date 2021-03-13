@@ -107,6 +107,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
                 channel=find_completely_empty_channel(),
             )
             props.record_start = -1
+            props.record_end = -1
         elif strip_name != "" and mode == "STRIP":
             sound_start = sequence.sequences_all[strip_name].frame_start
             sound_in = sequence.sequences_all[strip_name].frame_final_start
