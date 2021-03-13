@@ -78,7 +78,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
         props = scene.audacity_tools_props
         mode = props.audacity_mode
 
-        if mode == "SEQUENCE":
+        if mode == "SEQUENCE" or mode == "SELECTION":
             pipe_utilities.do_command("NewStereoTrack")
             pipe_utilities.do_command(
                 ("SelectTime:End='1' RelativeTo='ProjectStart' Start='0'").replace(
@@ -90,7 +90,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
         pipe_utilities.do_command("SelAllTracks")
         pipe_utilities.do_command("SelTrackStartToEnd")
         pipe_utilities.do_command(f"Export2: Filename={filepath} NumChannels=2")
-        if mode == "SEQUENCE":
+        if mode == "SEQUENCE" or mode == "SELECTION":
             pipe_utilities.do_command("Undo")
             pipe_utilities.do_command("Undo")
         time.sleep(0.1)
@@ -129,7 +129,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
                 new_sound.name
             ]
             sequence.sequences_all[strip_name].mute = True
-        elif mode != "SEQUENCE":  # No Strip name, insert at current frame
+        elif mode != "SEQUENCE" and mode != "SELECTION":  # No Strip name, insert at current frame
             seq_ops.sound_strip_add(
                 filepath=filepath,
                 relative_path=False,

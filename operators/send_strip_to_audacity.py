@@ -28,7 +28,13 @@ def set_volume(strip, strip_mode):
     name = sequence.sequences_all[strip.name]
     fade_curve = None  # curve for the fades
 
-    if scene.animation_data is not None:
+    if strip.mute == True:
+        pipe_utilities.do_command(
+            "SetEnvelope: Time="
+            + str(frames_to_sec(name.frame_offset_start)+0.01)
+            + " Value=0"
+        )
+    elif scene.animation_data is not None:
         if scene.animation_data.action is not None:
             all_curves = scene.animation_data.action.fcurves
 
@@ -83,7 +89,6 @@ def set_volume(strip, strip_mode):
                                     + " Value="
                                     + str(volume)
                                 )
-
     if fade_curve is None:
         if mode == "STRIP":
             pipe_utilities.do_command(
@@ -92,13 +97,14 @@ def set_volume(strip, strip_mode):
                 + " Value="
                 + str(volume)
             )
-        if mode == "SEQUENCE":
+        elif mode == "SEQUENCE" or mode == "SELECTION":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
                 + str(frames_to_sec(name.frame_final_start)+0.01)
                 + " Value="
                 + str(volume)
             )
+        
 
 
 class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):

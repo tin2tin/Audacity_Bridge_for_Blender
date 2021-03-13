@@ -7,8 +7,13 @@ from .. import pipe_utilities
 # return sound sequences of timeline
 def collect_files():
     scene = bpy.context.scene
+    props = scene.audacity_tools_props
     sequencer = scene.sequence_editor
-    sequences = sequencer.sequences_all
+
+    if props.audacity_mode == "SEQUENCE":    
+        sequences = sequencer.sequences_all
+    elif props.audacity_mode == "SELECTION":
+        sequences = bpy.context.selected_sequences
     export_sequences = []
     for sequence in sequences:
         if sequence.type == "SOUND":
