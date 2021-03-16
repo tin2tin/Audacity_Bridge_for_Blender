@@ -5,7 +5,7 @@ from .. import pipe_utilities
 from .send_strip_to_audacity import frames_to_sec
 
 # return sound sequences of timeline
-def collect_files():
+def collect_sound_strips():
     scene = bpy.context.scene
     props = scene.audacity_tools_props
     sequencer = scene.sequence_editor
@@ -73,11 +73,11 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         pipe_utilities.do_command("SelectAll")
         pipe_utilities.do_command("RemoveTracks")
 
-        sequences = collect_files()
+        sequences = collect_sound_strips()
         tracks = get_tracks(sequences)
         index = 0
         track_index = -1
-
+        print(tracks)
         pipe_utilities.do_command("NewStereoTrack")
         pipe_utilities.do_command(
             ("SelectTime:End='"+str(frames_to_sec(scene.frame_end))+"' RelativeTo='ProjectStart' Start='"+str(frames_to_sec(scene.frame_end-1))+"'").replace(
