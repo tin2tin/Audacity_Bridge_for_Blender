@@ -77,7 +77,7 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         tracks = get_tracks(sequences)
         index = 0
         track_index = -1
-        print(tracks)
+
         pipe_utilities.do_command("NewStereoTrack")
         pipe_utilities.do_command(
             ("SelectTime:End='"+str(frames_to_sec(scene.frame_end))+"' RelativeTo='ProjectStart' Start='"+str(frames_to_sec(scene.frame_end-1))+"'").replace(
