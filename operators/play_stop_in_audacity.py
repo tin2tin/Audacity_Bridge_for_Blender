@@ -2,7 +2,7 @@ import bpy
 
 from .send_strip_to_audacity import frames_to_sec
 
-from ..pipe_utilities import do_command
+from .. import pipe_utilities
 
 
 class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
@@ -14,7 +14,16 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
     bl_category = "Audacity Tools"
     bl_options = {"REGISTER", "UNDO"}
 
+    @classmethod
+    def poll(cls, context):
+        return context.window_manager.audacity_tools_pipe_available
+
     def execute(self, context):
+        # check if pipe available
+        if not pipe_utilities.check_pipe():
+            self.report({"WARNING"}, "No pipe available, try refresh operator")
+            return {"FINISHED"}
+
         if not bpy.context.scene.sequence_editor:
             context.scene.sequence_editor_create()
         scene = context.scene
@@ -25,15 +34,15 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
         if not screen.is_animation_playing:
             if props.audacity_mode == "RECORD":
                 bpy.context.scene.use_audio = True
-                do_command("PlayStop:")
+                pipe_utilities.do_command("PlayStop:")
                 bpy.ops.screen.animation_play()
             elif props.audacity_mode == "SEQUENCE":
                 bpy.context.scene.use_audio = True
                 sound_in = frames_to_sec(scene.frame_current)
                 sound_out = frames_to_sec(scene.frame_end)
                 sound_in = str(sound_in)
-                do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                do_command("PlayStop:")
+                pipe_utilities.do_command(("SelectTime:End='"+str(sound_out)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
+                pipe_utilities.do_command("PlayStop:")
                 bpy.ops.screen.animation_play()
             elif props.audacity_mode == "STRIP":
                 strip_name = props.send_strip
@@ -44,11 +53,11 @@ class SEQUENCER_OT_play_stop_in_audacity(bpy.types.Operator):
                     sound_duration = sequence.sequences_all[strip_name].frame_final_duration
                     scene.frame_current = sound_in
                     bpy.context.scene.use_audio = True
-                    do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
-                    do_command("PlayStop:")
+                    pipe_utilities.do_command(("SelectTime:End='"+str(sound_out - 0.1)+"' RelativeTo='ProjectStart' Start='"+str(sound_in)+"'").replace("'", '"'))
+                    pipe_utilities.do_command("PlayStop:")
                     bpy.ops.screen.animation_play()
         else:
-            do_command("PlayStop:")
+            pipe_utilities.do_command("PlayStop:")
             bpy.ops.screen.animation_play()
             bpy.ops.anim.previewrange_clear()
             bpy.context.scene.use_audio = False
