@@ -13,13 +13,13 @@ def act_strip(context):
 
 def frames_to_sec(frames):
     render = bpy.context.scene.render
-    fps = round((render.fps / render.fps_base), 3)
-    frames = frames / fps
-    return frames
+    fps = render.fps / render.fps_base
+    sec = frames / fps
+    return sec
 
 
 # Get f-curves and set then as envelopes.
-def set_volume(strip, active):
+def set_volume(strip, strip_mode):
     scene = bpy.context.scene
     props = scene.audacity_tools_props
     mode = props.audacity_mode
@@ -28,7 +28,13 @@ def set_volume(strip, active):
     name = sequence.sequences_all[strip.name]
     fade_curve = None  # curve for the fades
 
-    if scene.animation_data is not None:
+    if strip.mute == True:
+        pipe_utilities.do_command(
+            "SetEnvelope: Time="
+            + str(frames_to_sec(name.frame_offset_start)+0.01)
+            + " Value=0"
+        )
+    elif scene.animation_data is not None:
         if scene.animation_data.action is not None:
             all_curves = scene.animation_data.action.fcurves
 
@@ -44,10 +50,10 @@ def set_volume(strip, active):
                         fade_keyframes = fade_curve.keyframe_points
 
                         for f in fade_keyframes:
-                            # f.co[0]is the frame number
-                            # f.co[1] # is the keyed value
+                            # f.co[0] is the frame number
+                            # f.co[1] is the keyed value
                             if f.co[1] == 0:
-                                volume = 0.015
+                                volume = 0.001
                             else:
                                 volume = f.co[1]
                             sound_start = sequence.sequences_all[
@@ -62,17 +68,17 @@ def set_volume(strip, active):
                             offset_start = sequence.sequences_all[
                                 strip.name
                             ].frame_offset_start
-                            # Fade out will not work on last frame. Audacity cuts it.
+                            # Fade out will not work on last frame. Audacity cuts it so add/subtract value
                             if f.co[0] >= sound_end:
-                                frame = sound_end - 2
+                                frame = sound_end - 1
                             elif f.co[0] <= sound_start:
-                                frame = sound_start + 2
+                                frame = sound_start + 0.01
                             else:
                                 frame = f.co[0]
-                            if active:
+                            if strip_mode:
                                 pipe_utilities.do_command(
                                     "SetEnvelope: Time="
-                                    + str(frames_to_sec(frame - sound_start))
+                                    + str(frames_to_sec(frame - sequence.sequences_all[strip.name].frame_start))
                                     + " Value="
                                     + str(volume)
                                 )
@@ -83,22 +89,22 @@ def set_volume(strip, active):
                                     + " Value="
                                     + str(volume)
                                 )
-
-    if fade_curve is None and volume != 1:
+    if fade_curve is None:
         if mode == "STRIP":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_offset_start + 2))
+                + str(frames_to_sec(name.frame_offset_start)+0.01)
                 + " Value="
                 + str(volume)
             )
-        if mode == "SEQUENCE":
+        elif mode == "SEQUENCE" or mode == "SELECTION":
             pipe_utilities.do_command(
                 "SetEnvelope: Time="
-                + str(frames_to_sec(name.frame_final_start + 2))
+                + str(frames_to_sec(name.frame_final_start)+0.01)
                 + " Value="
                 + str(volume)
             )
+        
 
 
 class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
@@ -128,6 +134,7 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
         sequence = scene.sequence_editor
         name = sequence.sequences_all[strip.name]
         props.record_start = -1
+        props.record_end = -1
 
         if strip == None:
             return {"CANCELLED"}
@@ -161,9 +168,9 @@ class SEQUENCER_OT_send_strip_to_audacity(bpy.types.Operator):
         pipe_utilities.do_command("AddLabel:")
         pipe_utilities.do_command(("SetLabel:Label='0' Text='Used in Blender'").replace("'", '"'))
         # View.
-        pipe_utilities.do_command("ZoomSel:")
         pipe_utilities.do_command("FitInWindow:")
         pipe_utilities.do_command("FitV:")
+        pipe_utilities.do_command("ZoomSel:")
         set_volume(strip, True)
 
         return {"FINISHED"}

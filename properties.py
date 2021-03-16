@@ -16,11 +16,17 @@ class AUDACITYTOOLS_PR_properties(bpy.types.PropertyGroup) :
         default = -1,
         )
 
+    record_end : IntProperty(
+        name = "Record end",
+        default = -1,
+        )
+
     audacity_mode : bpy.props.EnumProperty(
         name="Mode",
         description="",
         items=(
             ("STRIP", "Strip", ""),
+            ("SELECTION", "Selection", ""),
             ("SEQUENCE", "Sequence", ""),
             ("RECORD", "Record", ""),
             ),
