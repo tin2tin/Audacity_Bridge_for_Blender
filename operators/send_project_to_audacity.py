@@ -27,7 +27,7 @@ def get_tracks(sequences):
     for sequence in sequences:
         if sequence.channel > maximum_channel:
             maximum_channel = sequence.channel
-    tracks = [list() for x in range(maximum_channel + 1)]
+    tracks = [list() for x in range(maximum_channel+1)]
     index = 0
     for sequence in sequences:
         index = index + 1
@@ -78,14 +78,6 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
         index = 0
         track_index = -1
 
-        pipe_utilities.do_command("NewStereoTrack")
-        pipe_utilities.do_command(
-            ("SelectTime:End='"+str(frames_to_sec(scene.frame_end))+"' RelativeTo='ProjectStart' Start='"+str(frames_to_sec(scene.frame_end-1))+"'").replace(
-                "'", '"'
-            )
-        )
-        pipe_utilities.do_command("Silence:Duration='1'").replace("'", '"')
-
         for track in reversed(tracks):
             track_index = track_index + 1
             pipe_utilities.do_command("NewStereoTrack:")
@@ -93,6 +85,15 @@ class SEQUENCER_OT_send_project_to_audacity(bpy.types.Operator):
             for sequence_data in track:
                 index = index + 1
                 source, sequence = sequence_data
+
+                # Insert silence in the end of range to ensure range match when loop playing.
+                if track_index == 0:
+                    pipe_utilities.do_command(
+                        ("SelectTime:End='"+str(frames_to_sec(scene.frame_end))+"' RelativeTo='ProjectStart' Start='"+str(frames_to_sec(scene.frame_end-1))+"'").replace(
+                            "'", '"'
+                        )
+                    )
+                    pipe_utilities.do_command("Silence:Duration='1'").replace("'", '"')
 
                 if sequence.type == "SOUND":
                     sound_in = send_strip_to_audacity.frames_to_sec(sequence.frame_final_start)
