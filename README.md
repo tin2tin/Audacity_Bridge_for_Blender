@@ -1,3 +1,5 @@
+DO NOT UPDATE TO THE NEW AUDACITY 3.0, AS IT WILL BREAK THIS ADD-ON!!!
+
 # Audacity Tools For Blender
 Sound editing in Blender Video Sequence Editor with Audacity integrated.
 
