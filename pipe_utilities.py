@@ -60,6 +60,13 @@ def check_set_pipe(launch=True):
 
     elif launch:
         print("Audacity Tools --- Trying to launch Audacity")
+        if sys.platform != "win32":
+            PIPE_TO_AUDACITY = "/tmp/audacity_script_pipe.to." + str(os.getuid())
+            PIPE_FROM_AUDACITY = "/tmp/audacity_script_pipe.from." + str(os.getuid())
+            if os.path.exists(PIPE_TO_AUDACITY):
+                os.remove(PIPE_TO_AUDACITY)
+            if os.path.exists(PIPE_FROM_AUDACITY):
+                os.remove(PIPE_FROM_AUDACITY)
         if launch_audacity():
             time.sleep(get_addon_preferences().audacity_waiting_time)
             _to, _from, _eol = return_audacity_pipe()
