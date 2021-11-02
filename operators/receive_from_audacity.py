@@ -73,7 +73,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
             self.report({"WARNING"}, "No pipe available, try refresh operator")
             return {"FINISHED"}
 
-        filepath = self.filepath
+        audacity_filepath = '"' + self.filepath + '"'
         scene = context.scene
         props = scene.audacity_tools_props
         mode = props.audacity_mode
@@ -89,7 +89,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
             pipe_utilities.do_command("MixAndRender")
         pipe_utilities.do_command("SelAllTracks")
         pipe_utilities.do_command("SelTrackStartToEnd")
-        pipe_utilities.do_command(f"Export2: Filename={filepath} NumChannels=2")
+        pipe_utilities.do_command(f"Export2: Filename={audacity_filepath} NumChannels=2")
         if mode == "SEQUENCE" or mode == "SELECTION":
             pipe_utilities.do_command("Undo")
             pipe_utilities.do_command("Undo")
@@ -101,7 +101,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
 
         if props.record_start != -1 and mode  == "RECORD":
             seq_ops.sound_strip_add(
-                filepath=filepath,
+                filepath=self.filepath,
                 relative_path=False,
                 frame_start=props.record_start,
                 channel=find_completely_empty_channel(),
@@ -117,7 +117,7 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
 
             new_sound = sequence.sequences.new_sound(
                 name=strip_name,
-                filepath=filepath,
+                filepath=self.filepath,
                 frame_start=sound_start,
                 channel=sound_channel + 1,
             )
@@ -131,14 +131,14 @@ class SEQUENCER_OT_receive_from_audacity(bpy.types.Operator, ExportHelper):
             sequence.sequences_all[strip_name].mute = True
         elif mode != "SEQUENCE" and mode != "SELECTION":  # No Strip name, insert at current frame
             seq_ops.sound_strip_add(
-                filepath=filepath,
+                filepath=self.filepath,
                 relative_path=False,
                 frame_start=scene.frame_current,
                 channel=find_completely_empty_channel(),
             )
         else:  # Sequence
             seq_ops.sound_strip_add(
-                filepath=filepath,
+                filepath=self.filepath,
                 relative_path=False,
                 frame_start=0,
                 channel=find_completely_empty_channel(),
