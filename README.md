@@ -1,4 +1,4 @@
-# Audacity Tools For Blender
+# Audacity Bridge for Blender
 Sound editing in Blender Video Sequence Editor with Audacity integrated. 
 
 IMPORTANT: As Audacity development has broken vital pipe functions affecting the Play functionality, for more than half a year, it is recommended to use one of the Audacity forks like TENACITY instead: https://codeberg.org/tenacityteam/tenacity
